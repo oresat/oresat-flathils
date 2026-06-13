@@ -8,8 +8,8 @@ from typing import TYPE_CHECKING
 import pytest
 
 if TYPE_CHECKING:
-    from oresat_flathils.hardware.core import RP2040Device
-    from oresat_flathils.simulator.core import BasiliskSimulator
+    from oresat_flathils.hardware import RP2040Device
+    from oresat_flathils.simulator import BasiliskSimulator
 
 
 def test_environment_variable_is_set() -> None:

@@ -11,7 +11,7 @@ readme = "README.md"
 requires-python = ">= 3.14"
 dependencies = [
     "pytest >= 9.0.0",
-    "labgrid >= 25.0.1",
+    "labgrid >= 26.0",
     "bsk >= 2.10.2"
 ]
 
@@ -25,7 +25,7 @@ dev = [
 flathils = "oresat_flathils.cli:main"
 
 [tool.oresat_flathils.harnesses]
-example-harness = { test_dir = "tests/example_harness" }
+example-harness = { test_dir = "src/oresat_flathils/harnesses/example_harness" }
 
 [tool.pytest.ini_options]
 markers = [

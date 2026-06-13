@@ -7,7 +7,7 @@ import pytest
 if TYPE_CHECKING:
     from collections.abc import Generator
 
-from .core import RP2040Device
+from .hardware import RP2040Device
 
 log = logging.getLogger("hardware.fixtures")
 

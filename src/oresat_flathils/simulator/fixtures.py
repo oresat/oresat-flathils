@@ -7,7 +7,7 @@ import pytest
 if TYPE_CHECKING:
     from collections.abc import Generator
 
-from .core import BasiliskSimulator
+from .simulator import BasiliskSimulator
 
 log = logging.getLogger("simulator.fixtures")
 
