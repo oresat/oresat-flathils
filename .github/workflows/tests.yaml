@@ -37,12 +37,8 @@ jobs:
 
       - name: Typecheck with mypy
         if: always() && steps.dependencies.conclusion == 'success'
-        run: mypy src/stationd --strict
+        run: mypy src/oresat_flathils --strict
 
       - name: Test with pytest
         if: always() && steps.dependencies.conclusion == 'success'
         run: pytest
-
-      - name: Test building pypi package
-        if: always() && steps.dependencies.conclusion == 'success'
-        run: python -m build

@@ -83,7 +83,16 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 # Test-specific lint ignores.
-"tests/**/test_*.py" = [
+"test_*.py" = [
     "S101",      # assert - pytest prefers plain assert
     "PLC0415",   # import - pytests need flexibility around when to import
+    # The test modules are pretty self-describing, no need to enforce docstrings for them.
+    "D100",      # modules
+    "D101",      # classes
+    "D102",      # methods
+    "D103",      # functions
+    "D104",      # package
+    "D105",      # magic methods
+    "D106",      # nested classes
+    "D107",      # __init__
 ]

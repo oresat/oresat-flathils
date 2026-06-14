@@ -2,19 +2,20 @@
 
 This module provides a basic example of testing hardware/simulation.
 """
+
 import os
 from typing import TYPE_CHECKING
 
 import pytest
 
 if TYPE_CHECKING:
-    from oresat_flathils.hardware import RP2040Device
-    from oresat_flathils.simulator import BasiliskSimulator
+    from oresat_flathils.hardware.hardware import RP2040Device
+    from oresat_flathils.simulator.simulator import BasiliskSimulator
 
 
 def test_environment_variable_is_set() -> None:
-  """Verify the session fixture properly set up the environment."""
-  assert os.environ.get("FLATHILS_ENV_ACTIVE") == "1", "Session fixture did not run"
+    """Verify the session fixture properly set up the environment."""
+    assert os.environ.get("FLATHILS_ENV_ACTIVE") == "1", "Session fixture did not run"
 
 
 def test_simulator_step(flathils_sim: BasiliskSimulator) -> None:
