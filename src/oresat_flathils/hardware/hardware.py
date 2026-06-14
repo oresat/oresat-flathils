@@ -2,6 +2,7 @@
 
 Provides Labgrid hardware device wrappers and hardware readiness checks.
 """
+
 import logging
 from typing import Any
 
@@ -14,14 +15,13 @@ class Device:
     """Base class for PSAS hardware devices."""
 
     # FIXME: Don't just silence this type check.
-    def __init__(self, target: Any = None) -> None: # noqa: ANN401
+    def __init__(self, target: Any = None) -> None:  # noqa: ANN401
         """Initialize the device with a Labgrid Target.
 
         Docs: https://labgrid.readthedocs.io/en/stable/_modules/labgrid/target.html
         """
         self.target = target
         self.is_ready = False
-
 
     def setup(self) -> None:
         """Acquire hardware device and verify readiness."""
@@ -42,10 +42,9 @@ class RP2040Device(Device):
     """
 
     # FIXME: Don't just silence this type check.
-    def __init__(self, target: Any = None) -> None: # noqa: ANN401
+    def __init__(self, target: Any = None) -> None:  # noqa: ANN401
         """Initialize RP2040 device."""
         super().__init__(target)
-
 
     def setup(self) -> None:
         """Ensure RP2040 Device is available and ready."""
@@ -59,7 +58,6 @@ class RP2040Device(Device):
             pytest.skip("Failed to acquire Labgrid RP2040 target")
 
         self.is_ready = True
-
 
     def teadown(self) -> None:
         """Deactivate and clean up."""

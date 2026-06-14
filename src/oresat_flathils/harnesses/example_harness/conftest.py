@@ -1,21 +1,18 @@
 """Test Configuation file for Example Harness."""
+
 import logging
 import os
 from typing import TYPE_CHECKING
 
-from oresat_flathils.simulator.fixtures import flathils_sim
-from oresat_flathils.hardware.fixtures import rp2040_device
-
-
 import pytest
 
 if TYPE_CHECKING:
-  from collections.abc import Generator
+    from collections.abc import Generator
 
 log = logging.getLogger("example_harness")
 
 
-@pytest.fixture(scope = "session", autouse = True)
+@pytest.fixture(scope="session", autouse=True)
 def flathils_environment() -> Generator[None]:
     """Set the pytest environment."""
     log.info("Setting up Example Environment ...")

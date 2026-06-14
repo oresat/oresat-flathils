@@ -1,4 +1,5 @@
 """OreSat FlatHILS CLI Module."""
+
 import argparse
 import sys
 
@@ -20,7 +21,7 @@ def main(argv: list[str] | None = None) -> int:
             pytest_args = pytest_args[1:]
 
         try:
-            return run_pytest(pytest_args = pytest_args, harness = args.harness)
+            return run_pytest(pytest_args=pytest_args, harness=args.harness)
         except (LookupError, ValueError) as exception:
             sys.stderr.write(f"flathils test: {exception}\n")
 
@@ -33,29 +34,31 @@ def main(argv: list[str] | None = None) -> int:
 
 def _build_parser() -> argparse.ArgumentParser:
     """Build the CLI tool options."""
-    parser = argparse.ArgumentParser(prog = 'OreSat FlatHILS CLI',
-                                     description = 'The OreSat FlatHILS Command-Line Interface.',
-                                     epilog = 'Happy Testing! 🎂')
+    parser = argparse.ArgumentParser(
+        prog='OreSat FlatHILS CLI',
+        description='The OreSat FlatHILS Command-Line Interface.',
+        epilog='Happy Testing! 🎂',
+    )
 
-    subparsers = parser.add_subparsers(dest = "command", required = True)
+    subparsers = parser.add_subparsers(dest="command", required=True)
 
     # Test parser
     test_parser = subparsers.add_parser(
         "test",
-        help = "Run pytest with FlatHILS environment setup.",
+        help="Run pytest with FlatHILS environment setup.",
     )
 
     test_parser.add_argument(
         "--harness",
-        required = True,
-        help = "Select a test harness name (configured in pyproject.toml).",
+        required=True,
+        help="Select a test harness name (configured in pyproject.toml).",
     )
 
     test_parser.add_argument(
         "--pytest-args",
-        nargs = argparse.REMAINDER,
-        default = [],
-        help = "Arguments forwarded to pytest (prefix with --).",
+        nargs=argparse.REMAINDER,
+        default=[],
+        help="Arguments forwarded to pytest (prefix with --).",
     )
 
     return parser
