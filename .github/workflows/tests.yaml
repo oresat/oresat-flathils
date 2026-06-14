@@ -41,4 +41,4 @@ jobs:
 
       - name: Test with pytest
         if: always() && steps.dependencies.conclusion == 'success'
-        run: pytest
+        run: pytest tests
