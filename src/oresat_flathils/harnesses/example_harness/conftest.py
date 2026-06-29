@@ -6,6 +6,9 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from oresat_flathils.hardware.fixtures import rp2040_device
+from oresat_flathils.simulator.fixtures import flathils_sim
+
 if TYPE_CHECKING:
     from collections.abc import Generator
 

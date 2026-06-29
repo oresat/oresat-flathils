@@ -8,7 +8,7 @@ OreSat FlatHILS is a software-based testing orchestrator platform for the Portla
 
 ## Up and Running
 
-1.  Spin up a [Python virtual environment](https://docs.python.org/3/library/venv.html). 
+1.  Spin up a [Python virtual environment](https://docs.python.org/3/library/venv.html).
 
     ```sh
     python -m venv .venv

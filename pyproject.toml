@@ -96,3 +96,6 @@ ignore = [
     "D106",      # nested classes
     "D107",      # __init__
 ]
+"**/conftest.py" = [
+    "F401"       # unused-import
+]
