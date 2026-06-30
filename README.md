@@ -41,7 +41,14 @@ flathils -h
 A "test harness" is a collection of configuration and tests for the OreSat satellite subject under test (SUT). An example harness is provided to demonstrate the structure of a test harness and can be run witht he following command.
 
 ```sh
-flathils test --harness example-harness
+flathils test example-harness
+```
+
+If you find yourself needing to command pytest directly, you can pass options and arguments through `flathils` to pytest with the `--pytest_args` flag.
+
+```sh
+# run the example harness and set pytest to verbose.
+flathils test example-harness --pytest_args -v
 ```
 
 ## Tests
