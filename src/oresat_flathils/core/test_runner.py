@@ -13,14 +13,15 @@ log = logging.getLogger("test_runner")
 def run_pytest(pytest_args: list[str], harness: str | None = None) -> int:
     """Test runner entrypoint tries to load the appropriate harness configuration."""
     args = list(pytest_args)
+    args.append("--ignore=tests/")
 
     if harness:
         try:
             config = _get_harness_config(harness)
-            test_dir = config.get("test_dir")
+            harness_dir = config.get("harness_dir")
 
-            if test_dir:
-                args.append(test_dir)
+            if harness_dir:
+                args.append(harness_dir)
         except Exception:
             log.exception("Error loading harness config")
 

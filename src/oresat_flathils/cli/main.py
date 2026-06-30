@@ -1,5 +1,7 @@
 """OreSat FlatHILS CLI Module."""
 
+import sys
+
 import click
 
 from oresat_flathils.core.test_runner import run_pytest
@@ -17,12 +19,14 @@ def base() -> None:
 
 
 @click.command()
-@click.argument('harness')
-def test(harness: str) -> None:
-    """Run pytest with FlatHILS environment setup."""
-    # FIXME: handle pytest_args
-    # FIXME: Add exception handling
-    run_pytest(pytest_args=[""], harness=harness)
+@click.argument("harness")
+@click.option("--pytest_args", default="", help="Arguments to pass through to PyTest.")
+def test(harness: str, pytest_args: str) -> None:
+    """Run pytest with FlatHILS environment setup for a given harness."""
+    try:
+        run_pytest(pytest_args=[pytest_args], harness=harness)
+    except (LookupError, ValueError) as exception:
+        sys.stderr.write(f"flathils test: {exception}\n")
 
 
 # Register commands to main group.

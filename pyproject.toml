@@ -26,7 +26,7 @@ dev = [
 flathils = "oresat_flathils.cli.main:base"
 
 [tool.oresat_flathils.harnesses]
-example-harness = { test_dir = "src/oresat_flathils/harnesses/example_harness" }
+example-harness = { harness_dir = "src/oresat_flathils/harnesses/example_harness" }
 
 [tool.pytest.ini_options]
 markers = [
