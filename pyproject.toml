@@ -12,7 +12,8 @@ requires-python = ">= 3.14"
 dependencies = [
     "pytest >= 9.0.0",
     "labgrid >= 26.0",
-    "bsk >= 2.10.2"
+    "bsk >= 2.10.2",
+    "click >= 8.4.0"
 ]
 
 [dependency-groups]
@@ -22,7 +23,7 @@ dev = [
 ]
 
 [project.scripts]
-flathils = "oresat_flathils.cli:main"
+flathils = "oresat_flathils.cli.main:base"
 
 [tool.oresat_flathils.harnesses]
 example-harness = { test_dir = "src/oresat_flathils/harnesses/example_harness" }
