@@ -42,7 +42,6 @@ class BasiliskSimulator:
 
         log.info("Initialized BasiliskSimulator in '%s' mode.", self.mode)
 
-
     def _setup_base_processes(self) -> None:
         """Configure baseline Basilisk processes and tasks.
 
@@ -50,7 +49,6 @@ class BasiliskSimulator:
         """
         self._proc = self._sim.CreateNewProcess(self._process_name)
         self._proc.addTask(self._sim.CreateNewTask(self._task_name, self._tick_rate_ns))
-
 
     def start(self) -> None:
         """Initialize the simulation.
@@ -60,7 +58,6 @@ class BasiliskSimulator:
         log.debug("Initializing Basilisk simulation state ...")
         self._sim.InitializeSimulation()
         self._is_running = True
-
 
     def step(self, duration_seconds: float) -> None:
         """Advance the simulation by some amount of time.
@@ -75,19 +72,16 @@ class BasiliskSimulator:
         self._sim.ConfigureStopTime(stop_time_ns)
         self._sim.ExecuteSimulation()
 
-
     def stop(self) -> None:
         """Safely halt the simulation and clean up."""
         if self._is_running:
             log.debug("Halting simulation ...")
             self._is_running = False
 
-
     def __enter__(self) -> Self:
         """Context manager entry."""
         self.start()
         return self
-
 
     def __exit__(
         self,
