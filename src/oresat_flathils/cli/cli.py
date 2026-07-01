@@ -3,8 +3,9 @@
 import argparse
 import sys
 
-from oresat_flathils.core.test_runner import run_pytest
 from oresat_flathils.core.sim_only_runner import run_sim_only
+from oresat_flathils.core.test_runner import run_pytest
+
 
 def main(argv: list[str] | None = None) -> int:
     """Entrypoint for the OreSat FlatHILS CLI."""
@@ -27,7 +28,7 @@ def main(argv: list[str] | None = None) -> int:
 
         return 2
 
-    elif args.command == "sim-only":
+    if args.command == "sim-only":
         try:
             return run_sim_only()
         except (LookupError, ValueError) as exception:
@@ -71,8 +72,9 @@ def _build_parser() -> argparse.ArgumentParser:
 
     # Simulation only parser
     sim_only_parser = subparsers.add_parser(
-        "sim-only",
-        help="Run a Basilisk simulation without any hardware."
+        "sim-only", help="Run a Basilisk simulation without any hardware."
     )
+
+    sim_only_parser.add_argument("--dummy-arg", help="Dummy argument.")
 
     return parser

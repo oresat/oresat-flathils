@@ -10,28 +10,24 @@ if TYPE_CHECKING:
     import types
     from collections.abc import Callable
 
+    from Basilisk.architecture import messaging
+
 import numpy as np
-from Basilisk.utilities import SimulationBaseClass, macros, unitTestSupport
-from Basilisk.simulation import spacecraft
-
-from Basilisk.utilities import simIncludeGravBody # gravity
-
-from Basilisk.simulation import magneticFieldWMM # magnetic field
-from Basilisk.architecture import astroConstants # not sure, maybe for sun
-
-from Basilisk.simulation import eclipse # energy analysis
-from Basilisk.simulation import simpleBattery # energy analysis
-from Basilisk.simulation import simpleSolarPanel # energy analysis
-from Basilisk.simulation import simplePowerSink # energy analysis
-
-from Basilisk.utilities.supportDataTools.dataFetcher import get_path, DataFile
-
-log = logging.getLogger("simulator.core")
-
-# this may not be needed
-#import os
-#path = os.path.dirname(os.path.abspath(filename))
-#bskPath = __path__[0]
+from Basilisk.simulation import (
+    eclipse,  # energy analysis
+    magneticFieldWMM,  # magnetic field
+    simpleBattery,  # energy analysis
+    simplePowerSink,  # energy analysis
+    simpleSolarPanel,  # energy analysis
+    spacecraft,
+)
+from Basilisk.utilities import (
+    SimulationBaseClass,
+    macros,
+    simIncludeGravBody,  # gravity
+    unitTestSupport,
+)
+from Basilisk.utilities.supportDataTools.dataFetcher import DataFile, get_path
 
 log = logging.getLogger("simulator.core")
 
@@ -58,7 +54,8 @@ class BasiliskSimulator:
         self._sim = SimulationBaseClass.SimBaseClass()
 
         # Add a process. There can be multiple processes for each simulation.
-        # For example, there can be one just for orbial and rigid body dynamics, and one just for flight sofware.
+        # For example, there can be one just for orbial and rigid body dynamics,
+        # and one just for flight sofware.
         self._process_name = "OresatSimProc"
 
         # Every process will be added as a task
@@ -71,7 +68,6 @@ class BasiliskSimulator:
 
         log.info("Initialized BasiliskSimulator in '%s' mode.", self.mode)
 
-
     def _setup_base_processes(self) -> None:
         """Configure baseline Basilisk processes and tasks.
 
@@ -80,162 +76,158 @@ class BasiliskSimulator:
         self._proc = self._sim.CreateNewProcess(self._process_name)
         self._proc.addTask(self._sim.CreateNewTask(self._task_name, self._tick_rate_ns))
 
+
     def build_sim(self) -> None:
-        """Adds features to simulation
+        """Build simulation.
 
         Ideally, a satellite static config and orbital config would be passed.
         """
         # epoch message for WMM reference
-        self._epochMsg = unitTestSupport.timeStringToGregorianUTCMsg('2025 June 27, 10:23:0.0 (UTC)')
+        self._epochMsg = unitTestSupport.timeStringToGregorianUTCMsg(
+            '2025 June 27, 10:23:0.0 (UTC)'
+        )
         # initial time when simulation is to start
         self._timeInitString = "2026-02-10T20:00:00Z"
         # spice objects (earth, sun) must be created before spacecraft is added
 
         # SATELLITE PARAMETERS
         satellite_name = "example-satelllite"
-        mass  = 3.5 # kg, 
+        mass = 3.5  # kg
         # rotational inertia placeholder
         # should be part of the satellite's static configuration
-        Jxx = 0.01650237
-        Jxy = 0.00000711
-        Jxz = 0.00004547
-        Jyx = Jxy
-        Jyy = 0.015962
-        Jyz = 0.00003107
-        Jzx = Jxz
-        Jzy = Jyz
-        Jzz = 0.00651814
-        rot_I = np.array([[Jxx, Jxy, Jxz], [Jyx, Jyy, Jyz], [Jzx, Jzy, Jzz]])
+        jxx = 0.01650237
+        jxy = 0.00000711
+        jxz = 0.00004547
+        jyx = jxy
+        jyy = 0.015962
+        jyz = 0.00003107
+        jzx = jxz
+        jzy = jyz
+        jzz = 0.00651814
+        rot_inertia = np.array([[jxx, jxy, jxz], [jyx, jyy, jyz], [jzx, jzy, jzz]])
 
         # ORBITAL PARAMETERS
         # initial MRP attitude placeholder, may be non-zero
         sigma = np.array([0.0, 0.0, 0.0])
         # rotational speed placeholder
         # should be part of the satellite's orbital configuration
-        omega = np.array([-0.15707963, -0.0418879,  -0.07330383])
+        omega = np.array([-0.15707963, -0.0418879, -0.07330383])
 
         # example for 2025 Jun 27, 10:23:0.0 (UTC)
         # this could be calculated from the orbital elements
         # so the config should be able to accept this or
         # the orbital elements
-        position = np.array([ 175981.01262138, 1412067.83525838, 6812565.32607667])
-        velocity = np.array([ 4940.03683994, -5636.92201438,  1051.77468059])
-
+        position = np.array([175981.01262138, 1412067.83525838, 6812565.32607667])
+        velocity = np.array([4940.03683994, -5636.92201438, 1051.77468059])
 
         # CREATE THE SATELLITE
         log.info("Creating spacecraft.")
-        scObject = spacecraft.Spacecraft()
-        scObject.ModelTag = satellite_name
-        scObject.hub.mHub = mass
-        scObject.hub.IHubPntBc_B = rot_I
-        scObject.hub.sigma_BNInit = sigma 
-        scObject.hub.omega_BN_BInit = omega
+        sc_object = spacecraft.Spacecraft()
+        sc_object.ModelTag = satellite_name
+        sc_object.hub.mHub = mass
+        sc_object.hub.IHubPntBc_B = rot_inertia
+        sc_object.hub.sigma_BNInit = sigma
+        sc_object.hub.omega_BN_BInit = omega
 
         # note, these probably have to be set AFTER
         # generating the gravityFactory / spice object
         # or else the coordinate system may be off,
         # please double check
-        scObject.hub.r_CN_NInit = position
-        scObject.hub.r_CN_NInit = velocity
-
+        sc_object.hub.r_CN_NInit = position
+        sc_object.hub.r_CN_NInit = velocity
 
         log.info("Done creating spacecraft.")
         # temporary variables for commonly used attributes
         # a message is used to pass infomation between models
-        scObjectMsg = scObject.scStateOutMsg
+        sc_object_msg = sc_object.scStateOutMsg
         # a recorder is made to store data from the simulation
-        scObjectRec = scObjectMsg.recorder()
+        sc_object_rec = sc_object_msg.recorder()
 
-        log.info(f"Adding spacecraft to task \"{self._task_name}\".")
+        log.info("Adding spacecraft to task.")
         # both the spacecraft and the recorder are added as a task in the sim
         # note this is for a dynamics based task
-        self._sim.AddModelToTask(self._task_name, scObject)
+        self._sim.AddModelToTask(self._task_name, sc_object)
         # add the recoder to the task to have it save data
-        self._sim.AddModelToTask(self._task_name, scObjectRec)
-
-
+        self._sim.AddModelToTask(self._task_name, sc_object_rec)
 
         # CREATE THE SYSTEM
         # every orbital simulation needs a gravity body
-        gravFactory = simIncludeGravBody.gravBodyFactory()
-        earth = gravFactory.createEarth()
+        grav_factory = simIncludeGravBody.gravBodyFactory()
+        earth = grav_factory.createEarth()
         earth.isCentralBody = True
-        
+
         # you can also create the sun, but that is not needed if there
         # are no solar simulations
-        sun = gravFactory.createSun()
+        # apparently the sun is not used
+        _ = grav_factory.createSun()
 
         # Unsure of it is important when to add spacecraft
-        gravFactory.addBodiesTo(scObject)
-
+        grav_factory.addBodiesTo(sc_object)
 
         # CREATE SYSTEM AS SPICE OBJECT (sun is an option)
         # create the spice objects, must create earth and sun first
-        spiceObject = gravFactory.createSpiceInterface(time=self._timeInitString, epochInMsg=True)
-        # data should automatically be loaded 
-        # spiceObject = gravFactory.createSpiceInterface(time=self._init_timestring, epochInMsg=True)
-        spiceObject.addPlanetNames(["earth"])
-        spiceObject.zeroBase = "earth"
+        spice_object = grav_factory.createSpiceInterface(time=self._timeInitString, epochInMsg=True)
+        # data should automatically be loaded
+        spice_object.addPlanetNames(["earth"])
+        spice_object.zeroBase = "earth"
 
-        earthMsg = spiceObject.planetStateOutMsgs[0]
-        earthRec = earthMsg.recorder()
-        sunMsg = spiceObject.planetStateOutMsgs[0]
-        sunRec = sunMsg.recorder()
+        earth_msg = spice_object.planetStateOutMsgs[0]
+        earth_rec = earth_msg.recorder()
+        sun_msg = spice_object.planetStateOutMsgs[0]
+        sun_rec = sun_msg.recorder()
 
         # have the earth in the gravity factory
         # follow the earth in the spice object
         # not sure if this is needed
-        earth.planetBodyInMsg.subscribeTo(earthMsg)
-        #gravFactory.gravBodies.get("earth").planetBodyInMsg.subscribeTo(spiceObject.planetStateOutMsgs[0])
+        earth.planetBodyInMsg.subscribeTo(earth_msg)
+        # this is for reference gravFactory.gravBodies.get("earth").
+        # it keeps going: planetBodyInMsg.subscribeTo(spiceObject.planetStateOutMsgs[0])
 
-        log.info(f"Adding spice object to task \"{self._task_name}\".")
+        log.info("Adding spice object to task.")
         # Add models and (optional) recorders to simulation
         # the last argument is priority, higher means higher priority
-        self._sim.AddModelToTask(self._task_name, spiceObject, -1)
-        self._sim.AddModelToTask(self._task_name, earthRec)
-        self._sim.AddModelToTask(self._task_name, sunRec)
-
-
+        self._sim.AddModelToTask(self._task_name, spice_object, -1)
+        self._sim.AddModelToTask(self._task_name, earth_rec)
+        self._sim.AddModelToTask(self._task_name, sun_rec)
 
         # CREATE THE MAGNETIC FIELD (option)
         # add a magnetic field if needed
-        magModel= magneticFieldWMM.MagneticFieldWMM()
-        magModel.ModelTag = "magModel" # I think this could be anything, such as "WMM"
+        mag_model = magneticFieldWMM.MagneticFieldWMM()
+        mag_model.ModelTag = "magModel"  # I think this could be anything, such as "WMM"
         # this model uses data that is packaged with Basilisk
-        magModel.configureWMMFile(str(get_path(DataFile.MagneticFieldData.WMM)))
- 
+        mag_model.configureWMMFile(str(get_path(DataFile.MagneticFieldData.WMM)))
+
         # Add the satellite to the model
-        magModel.addSpacecraftToModel(scObject.scStateOutMsg)  # this command can be repeated if multiple
-       
-        magMsg = magModel.envOutMsgs[0]
-        magRec = magMsg.recorder()
+        mag_model.addSpacecraftToModel(
+            sc_object.scStateOutMsg
+        )  # this command can be repeated if multiple
+
+        mag_msg = mag_model.envOutMsgs[0]
+        mag_rec = mag_msg.recorder()
 
         # Add model and (optional) recorder to simulation
-        log.info(f"Adding World Magnetic Model task \"{self._task_name}\".")
-        self._sim.AddModelToTask(self._task_name, magModel)
-        self._sim.AddModelToTask(self._task_name, magRec)
-
-
+        log.info("Adding World Magnetic Model task.")
+        self._sim.AddModelToTask(self._task_name, mag_model)
+        self._sim.AddModelToTask(self._task_name, mag_rec)
 
         # IMPLEMENT EARTH ECLIPSE (option)
         # Implement earth eclipsing the sun, if needed
         # check if there should be lunar eclipsing too
-        eclipseModel = eclipse.Eclipse()
-        eclipseModel.ModelTag = "eclipseModel"
+        eclipse_model = eclipse.Eclipse()
+        eclipse_model.ModelTag = "eclipseModel"
 
         # add satellite, earth, and sun to model
-        eclipseModel.addSpacecraftToModel(scObjectMsg)
-        eclipseModel.addPlanetToModel(earthMsg)
-        eclipseModel.sunInMsg.subscribeTo(sunMsg)
+        eclipse_model.addSpacecraftToModel(sc_object_msg)
+        eclipse_model.addPlanetToModel(earth_msg)
+        eclipse_model.sunInMsg.subscribeTo(sun_msg)
 
-        eclipseMsg = eclipseModel.eclipseOutMsgs[0]
-        eclipseRec = eclipseMsg.recorder()
+        eclipse_msg = eclipse_model.eclipseOutMsgs[0]
+        eclipse_rec = eclipse_msg.recorder()
 
         # add model and (optional) recorder to task
-        log.info(f"Adding eclipse model to task \"{self._task_name}\".")
-        self._sim.AddModelToTask(self._task_name, eclipseModel)
-        self._sim.AddModelToTask(self._task_name, eclipseRec)
-
+        log.info("Adding eclipse model to task")
+        self._sim.AddModelToTask(self._task_name, eclipse_model)
+        self._sim.AddModelToTask(self._task_name, eclipse_rec)
 
         # OPTIONAL SECTION: POWER
 
@@ -245,23 +237,26 @@ class BasiliskSimulator:
         # nHat_B: normal vector relative to spacecraft body
         # panelArea: panel area (m^2)
         # panelEfficiency: nondimensional efficiency, typically [0.1, 0,5]
-        solar_panel_parameters = {"nHat_B": np.array([1, 0, 0]),
-                                  "panelArea": 0.2*0.3,
-                                  "panelEfficiency": 0.20} 
+        solar_panel_parameters = {
+            "nHat_B": np.array([1, 0, 0]),
+            "panelArea": 0.2 * 0.3,
+            "panelEfficiency": 0.20,
+        }
 
         # this function can be called multiple times in a loop if needed
-        solar_panel_1 = self._get_solar_panel("solarPanel1", 
-                                            scObject=scObject, 
-                                            eclipseMsg=eclipseMsg, 
-                                            sunMsg=sunMsg, 
-                                            parameters=solar_panel_parameters)
+        solar_panel_1 = self._get_solar_panel(
+            model_tag="solarPanel1",
+            sc_object_msg=sc_object_msg,
+            eclipse_msg=eclipse_msg,
+            sun_msg=sun_msg,
+            parameters=solar_panel_parameters,
+        )
 
-        solar_panel_1_Msg = solar_panel_1.nodePowerOutMsg
-        solar_panel_1_Rec = solar_panel_1_Msg.recorder()
-        log.info(f"Adding solar panel to task \"{self._task_name}\".")
+        solar_panel_1_msg = solar_panel_1.nodePowerOutMsg
+        solar_panel_1_rec = solar_panel_1_msg.recorder()
+        log.info("Adding solar panel to task.")
         self._sim.AddModelToTask(self._task_name, solar_panel_1)
-        self._sim.AddModelToTask(self._task_name, solar_panel_1_Rec)
-       
+        self._sim.AddModelToTask(self._task_name, solar_panel_1_rec)
 
         # ADD POWER SINKS (option)
         # ideally, loop through a config and add all power sinks, if enabled
@@ -269,53 +264,63 @@ class BasiliskSimulator:
         # depending on the config, these might be passed to the flight software
         power_sink_1 = simplePowerSink.SimplePowerSink()
         power_sink_1.ModelTag = "powerSink1"
-        power_sink_1.nodePowerOut = -3.  # Watts, placeholder value, add to config
-        
-        power_sink_1_Msg = power_sink_1.nodePowerOutMsg
-        power_sink_1_Rec = power_sink_1_Msg.recorder()
-        log.info(f"Adding power sink to task \"{self._task_name}\".")
-        self._sim.AddModelToTask(self._task_name, power_sink_1)
-        self._sim.AddModelToTask(self._task_name, power_sink_1_Rec)
+        power_sink_1.nodePowerOut = -3.0  # Watts, placeholder value, add to config
 
+        power_sink_1_msg = power_sink_1.nodePowerOutMsg
+        power_sink_1_rec = power_sink_1_msg.recorder()
+        log.info("Adding power sink to task.")
+        self._sim.AddModelToTask(self._task_name, power_sink_1)
+        self._sim.AddModelToTask(self._task_name, power_sink_1_rec)
 
         # ADD POWER MONITOR
         # maybe condense all batteries into one battery for simplicity
-        powerMonitor = simpleBattery.SimpleBattery()
-        powerMonitor.ModelTag = "battery1Model"
-        powerMonitor.storageCapacity = (10.0*3600.0)
-        powerMonitor.storedCharge_Init = (10.0*3600.0)
+        power_monitor = simpleBattery.SimpleBattery()
+        power_monitor.ModelTag = "battery1Model"
+        power_monitor.storageCapacity = 10.0 * 3600.0
+        power_monitor.storedCharge_Init = 10.0 * 3600.0
 
-        powerMonitor.addPowerNodeToModel(solar_panel_1_Msg)
-        powerMonitor.addPowerNodeToModel(power_sink_1_Msg)
-        powerMonitorRec = powerMonitor.batPowerOutMsg.recorder()
-        log.info(f"Adding power monitor (battery) to task \"{self._task_name}\".")
-        self._sim.AddModelToTask(self._task_name, powerMonitor)
-        self._sim.AddModelToTask(self._task_name, powerMonitorRec)
+        power_monitor.addPowerNodeToModel(solar_panel_1_msg)
+        power_monitor.addPowerNodeToModel(power_sink_1_msg)
+        power_monitor_rec = power_monitor.batPowerOutMsg.recorder()
+        log.info("Adding power monitor (battery) to task.")
+        self._sim.AddModelToTask(self._task_name, power_monitor)
+        self._sim.AddModelToTask(self._task_name, power_monitor_rec)
 
+    def _get_solar_panel(
+        self,
+        model_tag: str,
+        sc_object_msg: messaging.SCStatesMsgPayload.SCStatesMsg,
+        eclipse_msg: messaging.EclipseMsgPayload.EclipseMsg,
+        sun_msg: messaging.SpicePlanetStateMsgPayload.SpicePlanetStateMsg,
+        parameters: dict,
+    ) -> simpleSolarPanel.SimpleSolarPanel:
+        '''Create a solar panel.
 
-
-
-    def _get_solar_panel(self, modelTag, scObject, eclipseMsg, sunMsg, parameters):
-        '''
         Parameters
-            modelTag: name for model
-            scObject: satellite
-            eclipseMsg: eclipse messages
-            sunMsg: sun messages
-            parameters: additional parameters in kwarg dictionary form
+        ----------
+        model_tag
+            name for model
+        sc_object_msg
+            satellite messages
+        eclipse_msg
+            eclipse messages
+        sun_msg
+            sun messages
+        parameters
+            additional parameters in kwarg dictionary form
 
-        returns
-            solarPanel: simpleSolarPanel()
+        Returns
+        -------
+        solarPanel: simpleSolarPanel()
         '''
-        solarPanel = simpleSolarPanel.SimpleSolarPanel()
-        solarPanel.ModelTag = modelTag
-        solarPanel.stateInMsg.subscribeTo(scObject.scStateOutMsg)
-        solarPanel.sunEclipseInMsg.subscribeTo(eclipseMsg)
-        solarPanel.sunInMsg.subscribeTo(sunMsg)
-        solarPanel.setPanelParameters(**parameters)
+        solar_panel = simpleSolarPanel.SimpleSolarPanel()
+        solar_panel.ModelTag = model_tag
+        solar_panel.stateInMsg.subscribeTo(sc_object_msg)
+        solar_panel.sunEclipseInMsg.subscribeTo(eclipse_msg)
+        solar_panel.sunInMsg.subscribeTo(sun_msg)
+        solar_panel.setPanelParameters(**parameters)
 
-        return solarPanel
-
+        return solar_panel
 
     def start(self) -> None:
         """Initialize the simulation.
