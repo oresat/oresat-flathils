@@ -14,6 +14,12 @@ if TYPE_CHECKING:
 
 log = logging.getLogger("example_harness")
 
+__all__ = [
+    "flathils_environment",
+    "flathils_sim",
+    "rp2040_device",
+]
+
 
 @pytest.fixture(scope="session", autouse=True)
 def flathils_environment() -> Generator[None]:
