@@ -6,10 +6,19 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from oresat_flathils.hardware.fixtures import rp2040_device
+from oresat_flathils.simulator.fixtures import flathils_sim
+
 if TYPE_CHECKING:
     from collections.abc import Generator
 
 log = logging.getLogger("example_harness")
+
+__all__ = [
+    "flathils_environment",
+    "flathils_sim",
+    "rp2040_device",
+]
 
 
 @pytest.fixture(scope="session", autouse=True)
