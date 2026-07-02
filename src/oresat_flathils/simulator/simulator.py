@@ -88,8 +88,8 @@ class BasiliskSimulator:
         self._timeInitString = "2026-02-10T20:00:00Z"
         # spice objects (earth, sun) must be created before spacecraft is added
 
-        self._msgs = dict
-        self._recs = dict
+        self._msgs = {}
+        self._recs = {}
 
         # SATELLITE PARAMETERS
         satellite_name = "example-satelllite"
@@ -145,6 +145,9 @@ class BasiliskSimulator:
         # a recorder is made to store data from the simulation
         sc_object_rec = sc_object_msg.recorder()
 
+        self._msgs[satellite_name] = sc_object_msg
+        self._recs[satellite_name] = sc_object_rec
+
         log.info("Adding spacecraft to task.")
         # both the spacecraft and the recorder are added as a task in the sim
         # note this is for a dynamics based task
@@ -163,11 +166,17 @@ class BasiliskSimulator:
 
         # MAKE MAGNETIC MODEL
         # maybe pass arguments if needed
-        self._make_mag_model(name="magneticModel")
+        self._make_mag_model(name="magneticModel", sc_name=satellite_name)
 
         # MAKE ECLIPSE MODEL
         # maybe pass arguments if needed
-        self._make_eclipse_model(name="eclipseModel")
+        self._make_eclipse_model(
+            name="eclipseModel",
+            sc_name=satellite_name,
+            earth_name="earthModel",
+            sun_name="sunModel",
+            moon_name="moonModel",
+        )
 
         # OPTIONAL SECTION: POWER
 
@@ -186,9 +195,9 @@ class BasiliskSimulator:
         # this function can be called multiple times in a loop if needed
         self._make_solar_panel(
             name="solarPanel1",
-            sc_name_msg=satellite_name,
+            sc_name=satellite_name,
             sun_name="sunModel",
-            eclipse_msg="eclipseModel",
+            eclipse_name="eclipseModel",
             parameters=solar_panel_parameters,
         )
 
@@ -286,7 +295,7 @@ class BasiliskSimulator:
         if sun_name is not None:
             self._sim.AddModelToTask(self._task_name, sun_rec)
         if moon_name is not None:
-            self._sim.AddModelToTask(self.task_name, moon_rec)
+            self._sim.AddModelToTask(self._task_name, moon_rec)
 
     def _make_mag_model(self, name: str, sc_name: str) -> None:
         """Add world magnetic model to simulation."""
@@ -327,13 +336,13 @@ class BasiliskSimulator:
 
         # add satellite, earth, and sun to model
         # reference self._msgs[name]
-        eclipse_model.addSpacecraftToModel(self._msg[sc_name])
-        eclipse_model.addPlanetToModel(self._msg[earth_name])
-        eclipse_model.sunInMsg.subscribeTo(self._msg[sun_name])
+        eclipse_model.addSpacecraftToModel(self._msgs[sc_name])
+        eclipse_model.addPlanetToModel(self._msgs[earth_name])
+        eclipse_model.sunInMsg.subscribeTo(self._msgs[sun_name])
         # both sun and earth are required, but moon is optional
         if moon_name is not None:
             # You would need a special orbit to see if this works
-            eclipse_model.addPlanetToModel(self._msg[moon_name])
+            eclipse_model.addPlanetToModel(self._msgs[moon_name])
 
         eclipse_msg = eclipse_model.eclipseOutMsgs[0]
         eclipse_rec = eclipse_msg.recorder()
@@ -353,7 +362,7 @@ class BasiliskSimulator:
         sc_name: str,
         sun_name: str,
         eclipse_name: str,
-        parameters: dict,
+        parameters: dict,  # type hint may require a protocol
     ) -> None:
         """Create a solar panel."""
         log.info("Building solar panel.")
@@ -374,9 +383,7 @@ class BasiliskSimulator:
         self._sim.AddModelToTask(self._task_name, solar_panel)
         self._sim.AddModelToTask(self._task_name, solar_panel_rec)
 
-        return solar_panel
-
-    def _make_power_sink(self, name: str, power_out: float) -> None:
+    def _make_power_sink(self, name: str, node_power: float) -> None:
         """Build a power sink and add it to the simulation."""
         # ADD POWER SINKS (option)
         # ideally, loop through a config and add all power sinks, if enabled
@@ -384,7 +391,7 @@ class BasiliskSimulator:
         # depending on the config, these might be passed to the flight software
         power_sink = simplePowerSink.SimplePowerSink()
         power_sink.ModelTag = name
-        power_sink.nodePowerOut = power_out  # Watts, placeholder value, add to config
+        power_sink.nodePowerOut = node_power  # Watts, placeholder value, add to config
 
         power_sink_msg = power_sink.nodePowerOutMsg
         power_sink_rec = power_sink_msg.recorder()
@@ -401,7 +408,7 @@ class BasiliskSimulator:
         name: str,
         total_capacity: float,
         initial_charge: float,
-        node_names: list,
+        node_names: list[str],
     ) -> None:
         """Make power monitor."""
         # ADD POWER MONITOR
