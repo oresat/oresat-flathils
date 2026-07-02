@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 
 import numpy as np
 from Basilisk.simulation import (
+    coarseSunSensor,  # solar eclipse analysis
     eclipse,  # energy analysis
     magneticFieldWMM,  # magnetic field
     simpleBattery,  # energy analysis
@@ -177,6 +178,28 @@ class BasiliskSimulator:
             sun_name="sunModel",
             moon_name="moonModel",
         )
+
+        # MAKE SUN SENSORS
+        # put sun sensors on each side of the satellite (optional)
+        # this is mostly an example for looping and
+        # probably should be included for logging
+        body_frame_directions = {
+            "px": np.array([1, 0, 0]),
+            "nx": np.array([-1, 0, 0]),
+            "py": np.array([0, 1, 0]),
+            "ny": np.array([0, -1, 0]),
+            "pz": np.array([0, 0, 1]),
+            "nz": np.array([0, 0, -1]),
+        }
+
+        for label, vect in body_frame_directions.items():
+            self._make_sun_sensor(
+                name="sunSensorModel" + label,
+                parameters={"fov": 90.0 * macros.D2R, "nHat_B": vect},
+                sc_name=satellite_name,
+                sun_name="sunModel",
+                eclipse_name="eclipseModel",
+            )
 
         # OPTIONAL SECTION: POWER
 
@@ -356,22 +379,66 @@ class BasiliskSimulator:
         self._sim.AddModelToTask(self._task_name, eclipse_model)
         self._sim.AddModelToTask(self._task_name, eclipse_rec)
 
+    def _make_sun_sensor(
+        self,
+        name: str,
+        parameters: dict,
+        sc_name: str,
+        sun_name: str,
+        eclipse_name: str | None = None,  # optional
+    ) -> None:
+        """Build a sun sensor.
+
+        Even if there are none on the satellite,
+        these are useful for debugging solar-related modules.
+
+        Parameters
+        ----------
+        name
+            Model name of sensor.
+        parameters
+            Dictionary with 'fov' (radians) and 'nHat_b' (unit body vector)
+        sc_name
+            Model name of the spacecraft the sun sensor is on.
+        sun_name
+            Model name of the sun model.
+        eclipse_name
+            Model name of the eclipse model.
+        """
+        log.info("Building a sun sensor.")
+        sun_sensor = coarseSunSensor.CoarseSunSensor()
+        sun_sensor.ModelTag = name
+        sun_sensor.fov = parameters["fov"]
+        sun_sensor.nHat_B = parameters["nHat_B"]
+
+        sun_sensor.stateInMsg.subscribeTo(self._msgs[sc_name])
+        sun_sensor.sunInMsg.subscribeTo(self._msgs[sun_name])
+        if eclipse_name is not None:
+            sun_sensor.sunEclipseInMsg.subscribeTo(self._msgs[eclipse_name])
+
+        sun_sensor_msg = sun_sensor.cssDataOutMsg
+        sun_sensor_rec = sun_sensor_msg.recorder()
+
+        self._msgs[name] = sun_sensor_msg
+        self._recs[name] = sun_sensor_rec
+
     def _make_solar_panel(
         self,
         name: str,
+        parameters: dict,  # type hint may require a protocol
         sc_name: str,
         sun_name: str,
-        eclipse_name: str,
-        parameters: dict,  # type hint may require a protocol
+        eclipse_name: str | None = None,  # optional
     ) -> None:
         """Create a solar panel."""
         log.info("Building solar panel.")
         solar_panel = simpleSolarPanel.SimpleSolarPanel()
         solar_panel.ModelTag = name
+        solar_panel.setPanelParameters(**parameters)
         solar_panel.stateInMsg.subscribeTo(self._msgs[sc_name])
         solar_panel.sunInMsg.subscribeTo(self._msgs[sun_name])
-        solar_panel.sunEclipseInMsg.subscribeTo(self._msgs[eclipse_name])
-        solar_panel.setPanelParameters(**parameters)
+        if eclipse_name is not None:
+            solar_panel.sunEclipseInMsg.subscribeTo(self._msgs[eclipse_name])
 
         solar_panel_msg = solar_panel.nodePowerOutMsg
         solar_panel_rec = solar_panel_msg.recorder()
