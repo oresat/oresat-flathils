@@ -4,6 +4,7 @@ import sys
 
 import click
 
+from oresat_flathils.core.sim_only_runner import run_sim_only
 from oresat_flathils.core.test_runner import run_pytest
 
 
@@ -29,5 +30,15 @@ def test(harness: str, pytest_args: str) -> None:
         sys.stderr.write(f"flathils test: {exception}\n")
 
 
+@click.command()
+def sim_only() -> None:
+    """Test building a simulation."""
+    try:
+        run_sim_only()
+    except (LookupError, ValueError) as exception:
+        sys.stderr.write(f"flathils test: {exception}\n")
+
+
 # Register commands to main group.
 base.add_command(test)
+base.add_command(sim_only)
