@@ -16,7 +16,7 @@ log = logging.getLogger("hardware.fixtures")
 @pytest.fixture
 def rp2040_device(request: pytest.FixtureRequest) -> Generator[RP2040Device]:
     """RP2040 device wrapper for test cases."""
-    run_hil = request.config.getoption("--run-hil", default=False)
+    run_hil = request.config.getoption("run_hil", default=False)
 
     if not run_hil:
         pytest.skip("Hardware-in-the-Loop tests require the --run-hil flag.")
