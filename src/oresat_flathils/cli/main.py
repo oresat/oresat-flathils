@@ -20,11 +20,12 @@ def base() -> None:
 
 @click.command()
 @click.argument("harness")
-@click.option("--pytest_args", default="", help="Arguments to pass through to PyTest.")
-def test(harness: str, pytest_args: str) -> None:
+@click.option("--run-hil", is_flag=True, default=False, help="Run hardware-in-the-loop tests.")
+@click.option("--pytest-args", default="", help="Arguments to pass through to PyTest.")
+def test(harness: str, run_hil: str, pytest_args: str) -> None:
     """Run pytest with FlatHILS environment setup for a given harness."""
     try:
-        run_pytest(pytest_args=[pytest_args], harness=harness)
+        run_pytest(harness=harness, run_hil=run_hil, pytest_args=[pytest_args])
     except (LookupError, ValueError) as exception:
         sys.stderr.write(f"flathils test: {exception}\n")
 
