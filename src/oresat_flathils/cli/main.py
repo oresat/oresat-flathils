@@ -22,7 +22,7 @@ def base() -> None:
 @click.argument("harness")
 @click.option("--run-hil", is_flag=True, default=False, help="Run hardware-in-the-loop tests.")
 @click.option("--pytest-args", default="", help="Arguments to pass through to PyTest.")
-def test(harness: str, run_hil: bool, pytest_args: str) -> None:
+def test(harness: str, run_hil: str, pytest_args: str) -> None:
     """Run pytest with FlatHILS environment setup for a given harness."""
     try:
         run_pytest(harness=harness, run_hil=run_hil, pytest_args=[pytest_args])

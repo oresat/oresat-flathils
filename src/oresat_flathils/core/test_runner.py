@@ -3,15 +3,21 @@
 import logging
 import tomllib
 from pathlib import Path
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import pytest
+
+if TYPE_CHECKING:
+    import Iterable
+
 log = logging.getLogger("test_runner")
 
 
-def run_pytest(harness: str | None = None,
-               run_hil: bool = False,
-               pytest_args: list[str] = False) -> int:
+def run_pytest(
+    harness: str | None = None,
+    run_hil: str | None = None,
+    pytest_args: list[str] | Iterable[str] = None,
+) -> int:
     """Test runner entrypoint tries to load the appropriate harness configuration."""
     args = list(pytest_args)
     args.append("--ignore=tests/")

@@ -56,7 +56,6 @@ class RP2040Device(Device):
         self.serial = self.target.get_driver("SerialDriver")
         self.is_ready = True
 
-
     def teadown(self) -> None:
         """Deactivate and clean up."""
         if self.target:
