@@ -19,7 +19,7 @@ def flathils_sim(request: pytest.FixtureRequest) -> Generator[BasiliskSimulator]
 
     This fixture ensures that the simulator is safely initialized and torn down.
     """
-    run_hil = request.config.getoption("--run-hil", default=False)
+    run_hil = request.config.getoption("run_hil", default=False)
     mode = "integrated" if run_hil else "isolated"
 
     log.info("Setting up BasiliskSimulator in '%s' mode...", mode)

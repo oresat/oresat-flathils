@@ -24,10 +24,10 @@ def rp2040_device(request: pytest.FixtureRequest) -> Generator[RP2040Device]:
     log.info("Acquiring RP2040 hardware...")
 
     target = None
-    if "target" in request.fixturenames:
+    try:
         target = request.getfixturevalue("target")
-    else:
-        log.warning("Labgrid 'target' fixture found but could not be loaded.")
+    except pytest.FixtureLookupError:
+        log.warning("Labgrid 'target' fixture could not be found.")
 
     device = RP2040Device(target=target)
     device.setup()

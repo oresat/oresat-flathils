@@ -25,6 +25,7 @@ def run_pytest(harness: str | None = None,
             harness_dir = config.get("harness_dir")
 
             if harness_dir:
+                args.extend(["--lg-env", str(Path(harness_dir) / "env.yaml")])
                 args.append(harness_dir)
         except Exception:
             log.exception("Error loading harness config")

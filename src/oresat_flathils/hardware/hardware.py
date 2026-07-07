@@ -50,14 +50,12 @@ class RP2040Device(Device):
         """Ensure RP2040 Device is available and ready."""
         log.debug("Checking RP2040 for readiness ...")
 
-        if self.target:
-            self.target.activate()
-            log.info("Labgrid target activated successfully.")
-
-        else:
+        if not self.target:
             pytest.skip("Failed to acquire Labgrid RP2040 target")
 
+        self.serial = self.target.get_driver("SerialDriver")
         self.is_ready = True
+
 
     def teadown(self) -> None:
         """Deactivate and clean up."""
