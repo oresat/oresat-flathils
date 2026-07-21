@@ -6,7 +6,10 @@ Provides Labgrid hardware device wrappers and hardware readiness checks.
 import logging
 from typing import Any
 
+import canopen
 import pytest
+
+H1F56_PROGRAM_SWID = 0x1F56
 
 log = logging.getLogger("hardware.core")
 
@@ -73,22 +76,23 @@ class SolarSimulator(Device):
 
 
 class CANBus(Device):
-    """Wrapper for CANopen bus interface
-       This uses the CANopen Library to provide a CAN interface using a serial-to-CAN adapter.
-       This test was implemented using a CopperForge VulCAN, use other adapters at your own risk.
+    """Wrapper for CANopen bus interface.
+
+    This uses the CANopen Library to provide a CAN interface using a serial-to-CAN adapter.
+    This test was implemented using a CopperForge VulCAN, use other adapters at your own risk.
     """
-    def __init__(self, target: Any = None, node_id: int = 0x7C, bitrate: int = 1_000_000) -> None:
+
+    # FIXME: Don't just silence this type check.
+    def __init__(self, target: Any = None, node_id: int = 0x7C, bitrate: int = 1_000_000) -> None:  # noqa: ANN401
         """Initialize CANBus device."""
         super().__init__(target)
         self.node_id = node_id
         self.bitrate = bitrate
-        self.network = None
-        self.node = None
+        self.network: canopen.Network | None = None
+        self.node: canopen.RemoteNode | None = None
 
     def setup(self) -> None:
         """Acquire the slcan adapter via labgrid and bring up a canopen Network."""
-        import canopen
-
         log.debug("Checking CAN adapter for readiness ...")
         if not self.target:
             pytest.skip("Failed to acquire Labgrid CAN adapter target")
@@ -112,10 +116,8 @@ class CANBus(Device):
         self.is_ready = False
 
     @staticmethod
-    def _object_dictionary():
-        import canopen
+    def _object_dictionary() -> None:
 
-        H1F56_PROGRAM_SWID = 0x1F56
         objdict = canopen.objectdictionary.ObjectDictionary()
         arr = canopen.objectdictionary.Array("Program software ID", H1F56_PROGRAM_SWID)
         var = canopen.objectdictionary.Variable("", H1F56_PROGRAM_SWID, subindex=1)

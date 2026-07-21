@@ -1,6 +1,6 @@
 """Shared pytest configuration for OreSat FlatHILS."""
 
-import pytest
+import pytest  # noqa: TC002 -- pytest evaluates this hook's annotations at runtime, this can be ignored
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:

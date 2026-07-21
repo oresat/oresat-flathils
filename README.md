@@ -19,7 +19,7 @@ OreSat FlatHILS is a software-based testing orchestrator platform for the Portla
 
     ```sh
     python -m pip install --upgrade pip setuptools wheel
-    python -m pip install -e .
+    python -m pip install -e ".[dev]"   # Installs development dependencies
     ```
 
 3.  When you are done developing, deactivate the virtual environment.
@@ -44,11 +44,11 @@ A "test harness" is a collection of configuration and tests for the OreSat satel
 flathils test example-harness
 ```
 
-If you find yourself needing to command pytest directly, you can pass options and arguments through `flathils` to pytest with the `--pytest_args` flag.
+If you find yourself needing to command pytest directly, you can pass options and arguments through `flathils` to pytest with the `--pytest-args` flag.
 
 ```sh
 # run the example harness and set pytest to verbose.
-flathils test example-harness --pytest_args -v
+flathils test example-harness --pytest-args -v
 ```
 
 ## CAN Harness

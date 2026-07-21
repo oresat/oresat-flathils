@@ -3,13 +3,12 @@
 import logging
 from typing import TYPE_CHECKING
 
-
 import pytest
 
 if TYPE_CHECKING:
     from collections.abc import Generator
 
-from .hardware import RP2040Device, CANBus
+from .hardware import CANBus, RP2040Device
 
 log = logging.getLogger("hardware.fixtures")
 
