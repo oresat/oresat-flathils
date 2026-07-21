@@ -20,6 +20,8 @@ dependencies = [
 dev = [
   "mypy >= 2.1.0",
   "ruff >= 0.15.14",
+  "canopen >= 2.3.0",
+  "python-can >= 4.3.0",
 ]
 
 [project.scripts]

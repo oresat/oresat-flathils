@@ -37,3 +37,4 @@ def test_rp2040_hardware(rp2040_device: RP2040Device) -> None:
     # FIXME: Teardown happens automatically in the fixture's yield block. Is
     # there a good way to test this?
     assert True
+

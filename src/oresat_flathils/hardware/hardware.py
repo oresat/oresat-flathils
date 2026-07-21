@@ -56,7 +56,7 @@ class RP2040Device(Device):
         self.serial = self.target.get_driver("SerialDriver")
         self.is_ready = True
 
-    def teadown(self) -> None:
+    def teardown(self) -> None:
         """Deactivate and clean up."""
         if self.target:
             try:
@@ -66,8 +66,60 @@ class RP2040Device(Device):
 
         self.is_ready = False
 
-
 class SolarSimulator(Device):
     """Wrapper for the Benchtop Solar Simulator."""
 
     # FIXME: Implement Solar Simulator hardware device.
+
+
+class CANBus(Device):
+    """Wrapper for CANopen bus interface
+       This uses the CANopen Library to provide a CAN interface using a serial-to-CAN adapter.
+       This test was implemented using a CopperForge VulCAN, use other adapters at your own risk.
+    """
+    def __init__(self, target: Any = None, node_id: int = 0x7C, bitrate: int = 1_000_000) -> None:
+        """Initialize CANBus device."""
+        super().__init__(target)
+        self.node_id = node_id
+        self.bitrate = bitrate
+        self.network = None
+        self.node = None
+
+    def setup(self) -> None:
+        """Acquire the slcan adapter via labgrid and bring up a canopen Network."""
+        import canopen
+
+        log.debug("Checking CAN adapter for readiness ...")
+        if not self.target:
+            pytest.skip("Failed to acquire Labgrid CAN adapter target")
+
+        self.target.activate(self.target.get_driver("SerialDriver"))
+        resource = self.target.get_resource("USBSerialPort")
+        port = resource.port
+
+        self.network = canopen.Network()
+        self.network.connect(interface="slcan", channel=port, bitrate=self.bitrate)
+        self.node = self.network.add_node(self.node_id, self._object_dictionary())
+        self.is_ready = True
+
+    def teardown(self) -> None:
+        """Disconnect the CANopen network."""
+        if self.network:
+            try:
+                self.network.disconnect()
+            except Exception:
+                log.exception("Error disconnecting CAN network.")
+        self.is_ready = False
+
+    @staticmethod
+    def _object_dictionary():
+        import canopen
+
+        H1F56_PROGRAM_SWID = 0x1F56
+        objdict = canopen.objectdictionary.ObjectDictionary()
+        arr = canopen.objectdictionary.Array("Program software ID", H1F56_PROGRAM_SWID)
+        var = canopen.objectdictionary.Variable("", H1F56_PROGRAM_SWID, subindex=1)
+        var.data_type = canopen.objectdictionary.UNSIGNED32
+        arr.add_member(var)
+        objdict.add_object(arr)
+        return objdict
