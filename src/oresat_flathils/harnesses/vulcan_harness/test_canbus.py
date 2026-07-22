@@ -16,7 +16,7 @@ def test_canopen_heartbeat_received(canbus_device: CANBus) -> None:
 
     received_heartbeat = []
 
-    def on_heartbeat(state: str) -> None:
+    def on_heartbeat(state: int) -> None:
         received_heartbeat.append(state)
 
     canbus_device.node.nmt.add_heartbeat_callback(on_heartbeat)

@@ -117,9 +117,9 @@ class CANBus(Device):
         self.is_ready = False
 
     @staticmethod
-    def _object_dictionary() -> canopen.objectdictionary.ObjectDictionary:
+    def _object_dictionary() -> canopen.ObjectDictionary:
 
-        objdict = canopen.objectdictionary.ObjectDictionary()
+        objdict = canopen.objectdictionary.ObjectDictionary()  # type: ignore[no-untyped-call]
         arr = canopen.objectdictionary.Array("Program software ID", H1F56_PROGRAM_SWID)
         var = canopen.objectdictionary.Variable("", H1F56_PROGRAM_SWID, subindex=1)
         var.data_type = canopen.objectdictionary.UNSIGNED32

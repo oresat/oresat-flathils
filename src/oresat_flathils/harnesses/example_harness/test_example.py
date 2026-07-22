@@ -29,7 +29,7 @@ def test_simulator_step(flathils_sim: BasiliskSimulator) -> None:
     assert True
 
 
-@pytest.mark.hil  # type: ignore[misc]
+@pytest.mark.hil
 def test_rp2040_hardware(rp2040_device: RP2040Device) -> None:
     """Test connecting to the physical RP2040 hardware."""
     assert rp2040_device.is_ready

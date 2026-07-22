@@ -17,7 +17,7 @@ def run_pytest(
     harness: str | None = None,
     run_hil: str | None = None,
     pytest_args: list[str] | Iterable[str] = None,
-) -> pytest.ExitCode:
+) -> int:
     """Test runner entrypoint tries to load the appropriate harness configuration."""
     args = list(pytest_args)
     args.append("--ignore=tests/")
