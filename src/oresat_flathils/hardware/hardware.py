@@ -69,6 +69,7 @@ class RP2040Device(Device):
 
         self.is_ready = False
 
+
 class SolarSimulator(Device):
     """Wrapper for the Benchtop Solar Simulator."""
 
@@ -116,7 +117,7 @@ class CANBus(Device):
         self.is_ready = False
 
     @staticmethod
-    def _object_dictionary() -> None:
+    def _object_dictionary() -> canopen.objectdictionary.ObjectDictionary:
 
         objdict = canopen.objectdictionary.ObjectDictionary()
         arr = canopen.objectdictionary.Array("Program software ID", H1F56_PROGRAM_SWID)

@@ -13,7 +13,7 @@ from .simulator import BasiliskSimulator
 log = logging.getLogger("simulator.fixtures")
 
 
-@pytest.fixture
+@pytest.fixture  # type: ignore[misc]
 def flathils_sim(request: pytest.FixtureRequest) -> Generator[BasiliskSimulator]:
     """Provide a BasiliskSimulator instance for test cases.
 

@@ -13,7 +13,7 @@ from .hardware import CANBus, RP2040Device
 log = logging.getLogger("hardware.fixtures")
 
 
-@pytest.fixture
+@pytest.fixture  # type: ignore[misc]
 def rp2040_device(request: pytest.FixtureRequest) -> Generator[RP2040Device]:
     """RP2040 device wrapper for test cases."""
     run_hil = request.config.getoption("run_hil", default=False)
@@ -37,7 +37,8 @@ def rp2040_device(request: pytest.FixtureRequest) -> Generator[RP2040Device]:
     log.info("Releasing RP2040 hardware...")
     device.teardown()
 
-@pytest.fixture
+
+@pytest.fixture  # type: ignore[misc]
 def canbus_device(request: pytest.FixtureRequest) -> Generator[CANBus]:
     """CANopen device wrapper for test cases."""
     run_hil = request.config.getoption("run_hil", default=False)

@@ -31,7 +31,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     )
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session", autouse=True)  # type: ignore[misc]
 def flathils_environment() -> Generator[None]:
     """Set the pytest environment."""
     log.info("Setting up Example Environment ...")
