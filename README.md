@@ -54,7 +54,7 @@ flathils test example-harness --pytest-args -v
 ## CAN Harness
 
 > [!WARNING]  
-> Your prj.conf for your build **MUST** have the CAN app enabled, if not you will fail every test.
+> Your prj.conf for your build **MUST** have the CAN app enabled, if not you will fail every test. you will also need to enable read/write on your `dev` path
 
 Verifies that OreSat cards using the NXP MCXN947 SoC are
 correctly reachable over CANopen via a Vulcan USB to CAN adapter. This checks:
@@ -70,8 +70,7 @@ may work but will require editing the `ID_VENDOR_ID`/`ID_MODEL_ID` match
 in `env.yaml` (use `lsusb` on linux) to your adapter's USB IDs — use at your own risk.
 
 ```sh
-pytest -v --run-hil --lg-env src/oresat_flathils/harnesses/vulcan_harness/env.yaml \
-src/oresat_flathils/harnesses/vulcan_harness/test_canbus.py
+flathils test vulcan-harness --run-hil
 ```
 
 ## Tests

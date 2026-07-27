@@ -46,19 +46,32 @@ class RP2040Device(Device):
     """
 
     # FIXME: Don't just silence this type check.
-    def __init__(self, target: Any = None) -> None:  # noqa: ANN401
-        """Initialize RP2040 device."""
-        super().__init__(target)
-
     def setup(self) -> None:
         """Ensure RP2040 Device is available and ready."""
         log.debug("Checking RP2040 for readiness ...")
 
         if not self.target:
             pytest.skip("Failed to acquire Labgrid RP2040 target")
+            return
 
         self.serial = self.target.get_driver("SerialDriver")
+        self.target.activate(self.serial)
+
+        if not self._ping():
+            pytest.fail("RP2040 did not respond to readiness check")
+            return
+
         self.is_ready = True
+
+    def _ping(self) -> bool:
+        """Send a lightweight command and confirm the RP2040 responds."""
+        try:
+            self.serial.write(b"PING\n")
+            response = self.serial.read(timeout=2.0)
+            return bool(response.strip() == b"PONG")
+        except Exception:
+            log.exception("RP2040 did not respond to ping.")
+            return False
 
     def teardown(self) -> None:
         """Deactivate and clean up."""

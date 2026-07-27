@@ -4,18 +4,16 @@ import sys
 
 import click
 
-from oresat_flathils.core.test_runner import run_pytest
+from oresat_flathils.core.runner import run_pytest
 
 
 @click.group()
 def base() -> None:
-    # ruff: disable[D205, D212, D400, D415]
-    """
+    """# noqa: D205, D212, D400, D415
     ░█▀▀░█░░░█▀█░▀█▀░█░█░▀█▀░█░░░█▀▀░░░█▀▀░█░░░▀█▀
     ░█▀▀░█░░░█▀█░░█░░█▀█░░█░░█░░░▀▀█░░░█░░░█░░░░█░
     ░▀░░░▀▀▀░▀░▀░░▀░░▀░▀░▀▀▀░▀▀▀░▀▀▀░░░▀▀▀░▀▀▀░▀▀▀
     """
-    # ruff: enable[D205, D212, D400, D415]
 
 
 @click.command()

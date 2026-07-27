@@ -10,7 +10,7 @@ import pytest
 if TYPE_CHECKING:
     import Iterable
 
-log = logging.getLogger("test_runner")
+log = logging.getLogger("runner")
 
 
 def run_pytest(
@@ -19,7 +19,7 @@ def run_pytest(
     pytest_args: list[str] | Iterable[str] = None,
 ) -> int:
     """Test runner entrypoint tries to load the appropriate harness configuration."""
-    args = list(pytest_args)
+    args = [a for a in (pytest_args or []) if a]
     args.append("--ignore=tests/")
 
     if run_hil:
