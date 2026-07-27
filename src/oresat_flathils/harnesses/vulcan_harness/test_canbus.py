@@ -26,11 +26,13 @@ def test_canopen_heartbeat_received(canbus_device: CANBus) -> None:
 
 
 def test_canopen_sdo_swid_read(canbus_device: CANBus) -> None:
-    """Program Software ID should be readable and non-null."""
+    """Program Software ID should be readable as a valid, non-zero UNSIGNED32."""
     assert canbus_device.node is not None
 
     value = canbus_device.node.sdo[H1F56_PROGRAM_SWID][1].raw
-    assert value is not None
+
+    assert isinstance(value, int)
+    assert 0 < value <= 0xFFFFFFFF, f"SWID out of UNSIGNED32 range: {value:#010x}"
 
 
 def test_canopen_sdo_swid_write_rejected(canbus_device: CANBus) -> None:

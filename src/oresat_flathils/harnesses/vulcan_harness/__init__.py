@@ -1,1 +1,1 @@
-"""Not needed, leave as blank file for now."""
+"""VulCAN Harness for CAN testing on FlatHILS."""

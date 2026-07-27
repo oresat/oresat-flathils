@@ -4,6 +4,7 @@ Provides Labgrid hardware device wrappers and hardware readiness checks.
 """
 
 import logging
+import time
 from typing import Any
 
 import canopen
@@ -79,8 +80,10 @@ class SolarSimulator(Device):
 class CANBus(Device):
     """Wrapper for CANopen bus interface.
 
-    This uses the CANopen Library to provide a CAN interface using a serial-to-CAN adapter.
-    This test was implemented using a CopperForge VulCAN, use other adapters at your own risk.
+    This class uses the python-canopen library to interface with a a serial to CAN adapter
+    via slcan. The adapter is acquired via labgrid and the CANopen network is brought up for use.
+    This device wrapper was built for a Copperforge VulCAN USB-CAN adapter
+    but should work with any slcan-compatible adapter.
     """
 
     # FIXME: Don't just silence this type check.
@@ -94,16 +97,43 @@ class CANBus(Device):
 
     def setup(self) -> None:
         """Acquire the slcan adapter via labgrid and bring up a canopen Network."""
-        log.debug("Checking CAN adapter for readiness ...")
         if not self.target:
-            pytest.skip("Failed to acquire Labgrid CAN adapter target")
+            pytest.fail("Failed to acquire Labgrid CAN adapter target")
+            return
 
         self.target.activate(self.target.get_driver("SerialDriver"))
         resource = self.target.get_resource("USBSerialPort")
         port = resource.port
 
-        self.network = canopen.Network()
-        self.network.connect(interface="slcan", channel=port, bitrate=self.bitrate)
+        try:
+            self.network = canopen.Network()
+        except Exception:
+            log.exception("Failed to initialize CANopen network object")
+            pytest.fail("Failed to initialize CANopen network")
+            return
+
+        canopen_connect_attempts = 3
+        canopen_retry_delay = 1.0  # in seconds, lets CANopen flush
+
+        for attempt in range(1, canopen_connect_attempts + 1):
+            # Attempt to connect
+            try:
+                self.network.connect(interface="slcan", channel=port, bitrate=self.bitrate)
+                break
+            except Exception:
+                log.exception("CANopen Connection attempt #%d failed. Retrying...", attempt)
+                try:
+                    self.network.disconnect()  # Failed! attempt to disconnect before trying again.
+                except Exception:
+                    log.exception("Unable to disconnect CAN network after failed attempt")
+
+                # Try again to connect, let logs flush first.
+                if attempt < canopen_connect_attempts:
+                    time.sleep(canopen_retry_delay)
+        else:
+            pytest.fail("Failed to connect to CANopen Network")
+            return
+
         self.node = self.network.add_node(self.node_id, self._object_dictionary())
         self.is_ready = True
 
@@ -118,11 +148,25 @@ class CANBus(Device):
 
     @staticmethod
     def _object_dictionary() -> canopen.ObjectDictionary:
+        """CANopen Object Dictionary for node.
 
-        objdict = canopen.objectdictionary.ObjectDictionary()  # type: ignore[no-untyped-call]
-        arr = canopen.objectdictionary.Array("Program software ID", H1F56_PROGRAM_SWID)
-        var = canopen.objectdictionary.Variable("", H1F56_PROGRAM_SWID, subindex=1)
-        var.data_type = canopen.objectdictionary.UNSIGNED32
-        arr.add_member(var)
-        objdict.add_object(arr)
-        return objdict
+        Currently defines an object 0x1F56
+        which is the program Software identification address used on CANopen node running on Zephyr.
+        This is an array because a node may support multiple programs
+        as in, it makes sure future expandability within FlatHILS CAN is easier.
+        """
+        object_dictionary = canopen.objectdictionary.ObjectDictionary()  # type: ignore[no-untyped-call]
+
+        # 0x1F56: Program software identification (array of per-program SW IDs)
+        program_swid_array = canopen.objectdictionary.Array(
+            "Program software ID", H1F56_PROGRAM_SWID
+        )
+
+        # Subindex 1: software ID for program 1
+        program_swid_var = canopen.objectdictionary.Variable("", H1F56_PROGRAM_SWID, subindex=1)
+        program_swid_var.data_type = canopen.objectdictionary.UNSIGNED32
+        program_swid_array.add_member(program_swid_var)
+
+        object_dictionary.add_object(program_swid_array)
+
+        return object_dictionary

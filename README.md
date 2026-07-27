@@ -69,10 +69,10 @@ Requires a Copperforge Vulcan connected via USB. Other USB-CAN adapters
 may work but will require editing the `ID_VENDOR_ID`/`ID_MODEL_ID` match
 in `env.yaml` (use `lsusb` on linux) to your adapter's USB IDs — use at your own risk.
 
-
-    pytest -v --run-hil --lg-env src/oresat_flathils/harnesses/vulcan_harness/env.yaml \
-        src/oresat_flathils/harnesses/vulcan_harness/test_canbus.py
-
+```sh
+pytest -v --run-hil --lg-env src/oresat_flathils/harnesses/vulcan_harness/env.yaml \
+src/oresat_flathils/harnesses/vulcan_harness/test_canbus.py
+```
 
 ## Tests
 

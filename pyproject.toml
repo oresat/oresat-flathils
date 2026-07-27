@@ -14,14 +14,14 @@ dependencies = [
     "labgrid >= 26.0",
     "bsk >= 2.10.2",
     "click >= 8.4.0",
+    "canopen >= 2.3.0",
+    "python-can >= 4.3.0",
 ]
 
 [dependency-groups]
 dev = [
   "mypy >= 2.1.0",
   "ruff >= 0.15.14",
-  "canopen >= 2.3.0",
-  "python-can >= 4.3.0",
 ]
 
 [project.scripts]

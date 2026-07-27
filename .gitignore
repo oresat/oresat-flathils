@@ -1,12 +1,3 @@
-
-# editors
-.vscode
-*.swp
-*.cache
-
-# mac
-.DS_Store
-
 # python
 __pycache__/
 .mypy_cache/
