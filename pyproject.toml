@@ -101,11 +101,3 @@ ignore = [
     "D106",      # nested classes
     "D107",      # __init__
 ]
-
-# FlatHILS CLI text block ling ignores
-"src/oresat_flathils/cli/main.py" =[
-    "D205",
-    "D212",
-    "D400",
-    "D415"
-]

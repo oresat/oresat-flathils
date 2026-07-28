@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 from oresat_flathils.hardware.fixtures import canbus_device, rp2040_device
 from oresat_flathils.simulator.fixtures import flathils_sim
 
-log = logging.getLogger("vulcan_harness")  # CAN Harness logs
+log = logging.getLogger("vulcan_harness")
 
 """
     This allows for all harnesses to have on single global configuration file

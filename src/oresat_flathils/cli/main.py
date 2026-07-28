@@ -9,11 +9,13 @@ from oresat_flathils.core.runner import run_pytest
 
 @click.group()
 def base() -> None:
-    """# noqa: D205, D212, D400, D415
+    """ruff: disable[D205, D212, D400, D415]."""
+    """
     ░█▀▀░█░░░█▀█░▀█▀░█░█░▀█▀░█░░░█▀▀░░░█▀▀░█░░░▀█▀
     ░█▀▀░█░░░█▀█░░█░░█▀█░░█░░█░░░▀▀█░░░█░░░█░░░░█░
     ░▀░░░▀▀▀░▀░▀░░▀░░▀░▀░▀▀▀░▀▀▀░▀▀▀░░░▀▀▀░▀▀▀░▀▀▀
     """
+    """ruff: enable[D205, D212, D400, D415]."""
 
 
 @click.command()

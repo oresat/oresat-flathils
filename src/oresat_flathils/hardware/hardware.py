@@ -45,7 +45,6 @@ class RP2040Device(Device):
     PSAS lab hardware device classes are written.
     """
 
-    # FIXME: Don't just silence this type check.
     def setup(self) -> None:
         """Ensure RP2040 Device is available and ready."""
         log.debug("Checking RP2040 for readiness ...")
