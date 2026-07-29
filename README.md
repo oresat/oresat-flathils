@@ -54,7 +54,7 @@ flathils test example-harness --pytest-args -v
 ## CAN Harness
 
 Verifies that OreSat cards using the NXP MCXN947 SoC are
-correctly reachable over CANopen.
+correctly reachable over SocketCAN using CANopen.
 
 This Requires a Copperforge Vulcan connected via USB. Other USB-CAN adapters
 may work but will require editing the `ID_VENDOR_ID`/`ID_MODEL_ID` match
@@ -63,8 +63,20 @@ in `env.yaml` (use `lsusb` on linux) to your adapter's USB IDs — use at your o
 > [!WARNING]  
 > Your zephyr build's `prj.conf` for your build **MUST** have the CAN app enabled, if not you will fail every test. you will also need to enable read/write on your `dev` path.
 
+1. First Run `can-setup` on your terminal to set up an ip link to `can0`
+
 ```sh
-flathils test vulcan-harness --run-hil
+sudo sh can-setup.sh
+```
+
+2. Run your test to ensure everything works
+```sh
+flathils test vulcan-harness --run-hil --pytest-args -v
+```
+
+3. When you are done testing, teardown the `can0` interface
+```sh
+sudo sh can-teardown.sh
 ```
 
 ## Tests

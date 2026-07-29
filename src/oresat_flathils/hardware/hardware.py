@@ -92,30 +92,35 @@ class SolarSimulator(Device):
 class CANBus(Device):
     """Wrapper for CANopen bus interface.
 
-    This class uses the python-canopen library to interface with a a serial to CAN adapter
-    via slcan. The adapter is acquired via labgrid and the CANopen network is brought up for use.
-    This device wrapper was built for a Copperforge VulCAN USB-CAN adapter
-    but should work with any slcan-compatible adapter.
+    This class uses the python-canopen library to interface with a serial to CAN adapter.
+    This class uses socketCAN, which means that the CAN interface (can0) is expected to exist.
     """
 
-    # FIXME: Don't just silence this type check.
-    def __init__(self, target: Any = None, node_id: int = 0x7C, bitrate: int = 1_000_000) -> None:  # noqa: ANN401
-        """Initialize CANBus device."""
+    def __init__(
+            self,
+            target:  Any = None,  #noqa: ANN401
+            node_id: int = 0x7c,
+            channel: str = "can0",
+            bitrate: int = 1_000_000,
+    ) -> None:
+        """Initialize CANBus device.
+        NOTE: `bitrate` is purely informational only when using socketcan.
+        python-can Socketcan bus does not configure bitrate itself and
+        the interface must be already be up at the correct bitrate externally.
+        See `can-setup.sh' to set up interface.
+        """
         super().__init__(target)
         self.node_id = node_id
-        self.bitrate = bitrate
+        self.channel = channel
+        self.bitrate = bitrate  # Only for SocketCAN
         self.network: canopen.Network | None = None
         self.node: canopen.RemoteNode | None = None
 
     def setup(self) -> None:
-        """Acquire the slcan adapter via labgrid and bring up a canopen Network."""
+        """Acquire the socketCAN adapter via labgrid and bring up a canopen Network."""
         if not self.target:
             pytest.fail("Failed to acquire Labgrid CAN adapter target")
             return
-
-        self.target.activate(self.target.get_driver("SerialDriver"))
-        resource = self.target.get_resource("USBSerialPort")
-        port = resource.port
 
         try:
             self.network = canopen.Network()
@@ -130,7 +135,7 @@ class CANBus(Device):
         for attempt in range(1, canopen_connect_attempts + 1):
             # Attempt to connect
             try:
-                self.network.connect(interface="slcan", channel=port, bitrate=self.bitrate)
+                self.network.connect(interface="socketcan", channel = self.channel)
                 break
             except Exception:
                 log.exception("CANopen Connection attempt #%d failed. Retrying...", attempt)
