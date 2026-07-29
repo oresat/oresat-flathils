@@ -97,18 +97,20 @@ class CANBus(Device):
     """
 
     def __init__(
-            self,
-            target:  Any = None,  #noqa: ANN401
-            node_id: int = 0x7c,
-            channel: str = "can0",
-            bitrate: int = 1_000_000,
+        self,
+        target: Any = None,  # noqa: ANN401
+        node_id: int = 0x7C,
+        channel: str = "can0",
+        bitrate: int = 1_000_000,
     ) -> None:
-        """Initialize CANBus device.
+        """Initialize CANBus device."""
+        """
         NOTE: `bitrate` is purely informational only when using socketcan.
         python-can Socketcan bus does not configure bitrate itself and
         the interface must be already be up at the correct bitrate externally.
         See `can-setup.sh' to set up interface.
         """
+
         super().__init__(target)
         self.node_id = node_id
         self.channel = channel
@@ -135,7 +137,7 @@ class CANBus(Device):
         for attempt in range(1, canopen_connect_attempts + 1):
             # Attempt to connect
             try:
-                self.network.connect(interface="socketcan", channel = self.channel)
+                self.network.connect(interface="socketcan", channel=self.channel)
                 break
             except Exception:
                 log.exception("CANopen Connection attempt #%d failed. Retrying...", attempt)
