@@ -19,7 +19,7 @@ OreSat FlatHILS is a software-based testing orchestrator platform for the Portla
 
     ```sh
     python -m pip install --upgrade pip setuptools wheel
-    python -m pip install --group dev
+    python -m pip install -e . --group-dev
     ```
 
 3.  When you are done developing, deactivate the virtual environment.
@@ -63,20 +63,13 @@ in `env.yaml` (use `lsusb` on linux) to your adapter's USB IDs — use at your o
 > [!WARNING]  
 > Your zephyr build's `prj.conf` for your build **MUST** have the CAN app enabled, if not you will fail every test. you will also need to enable read/write on your `dev` path.
 
-1. First Run `can-setup` on your terminal to set up an ip link to `can0`
+1. First, make sure you have a CAN connection with your device as `flathilscan0`
+if you do not have this, see [CAN Adapter Setup](util/can_udev.md) for setup
+
+2. Run a CAN harness test to ensure everything works:
 
 ```sh
-sudo sh can-setup.sh
-```
-
-2. Run your test to ensure everything works
-```sh
-flathils test vulcan-harness --run-hil --pytest-args -v
-```
-
-3. When you are done testing, teardown the `can0` interface
-```sh
-sudo sh can-teardown.sh
+flathils test can-harness --run-hil --pytest-args -v
 ```
 
 ## Tests

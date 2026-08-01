@@ -4,11 +4,15 @@ Provides Labgrid hardware device wrappers and hardware readiness checks.
 """
 
 import logging
-import time
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
+import can
 import canopen
 import pytest
+from labgrid.resource import NetworkInterface
+
+if TYPE_CHECKING:
+    from labgrid import Target
 
 H1F56_PROGRAM_SWID = 0x1F56
 
@@ -64,105 +68,61 @@ class RP2040Device(Device):
 
     def _ping(self) -> bool:
         """Send a lightweight command and confirm the RP2040 responds."""
-        try:
-            self.serial.write(b"PING\n")
-            response = self.serial.read(timeout=2.0)
-            return bool(response.strip() == b"PONG")
-        except Exception:
-            log.exception("RP2040 did not respond to ping.")
-            return False
+        self.serial.write(b"PING\n")
+        response = self.serial.read(timeout=2.0)
+        return bool(response.strip() == b"PONG")
 
     def teardown(self) -> None:
         """Deactivate and clean up."""
         if self.target:
-            try:
-                self.target.deactivate()
-            except Exception:
-                log.exception("Error deactivating labgrid target.")
+            self.target.deactivate()
 
         self.is_ready = False
 
 
-class SolarSimulator(Device):
-    """Wrapper for the Benchtop Solar Simulator."""
+class CANInterface(Device):
+    """Labgrid target and raw python-can bus."""
 
-    # FIXME: Implement Solar Simulator hardware device.
-
-
-class CANBus(Device):
-    """Wrapper for CANopen bus interface.
-
-    This class uses the python-canopen library to interface with a serial to CAN adapter.
-    This class uses socketCAN, which means that the CAN interface (can0) is expected to exist.
-    """
-
-    def __init__(
-        self,
-        target: Any = None,  # noqa: ANN401
-        node_id: int = 0x7C,
-        channel: str = "can0",
-        bitrate: int = 1_000_000,
-    ) -> None:
-        """Initialize CANBus device."""
-        """
-        NOTE: `bitrate` is purely informational only when using socketcan.
-        python-can Socketcan bus does not configure bitrate itself and
-        the interface must be already be up at the correct bitrate externally.
-        See `can-setup.sh' to set up interface.
-        """
-
+    def __init__(self, target: Target | None = None) -> None:
+        """Initialize CANInterface with a Labgrid target."""
         super().__init__(target)
+        self.bus: can.BusABC | None = None
+
+    def setup(self) -> None:
+        if not self.target:
+            pytest.fail("Failed to acquire Labgrid CAN adapter target")
+            return
+        iface = self.target.get_resource(NetworkInterface)
+        self.bus = can.interface.Bus(channel=iface.ifname, interface="socketcan")
+        self.is_ready = True
+
+    def teardown(self) -> None:
+        if self.bus:
+            self.bus.shutdown()
+        self.is_ready = False
+
+
+class CANopenNode:
+    """Builds a CANopen Network on to of CANInterface() bus."""
+
+    def __init__(self, bus: can.BusABC, node_id: int = 0x7C) -> None:
+        """Initialize CANopenNode with an existing python-can bus and CANopen node ID."""
+        self.bus = bus
         self.node_id = node_id
-        self.channel = channel
-        self.bitrate = bitrate  # Only for SocketCAN
         self.network: canopen.Network | None = None
         self.node: canopen.RemoteNode | None = None
 
     def setup(self) -> None:
-        """Acquire the socketCAN adapter via labgrid and bring up a canopen Network."""
-        if not self.target:
-            pytest.fail("Failed to acquire Labgrid CAN adapter target")
-            return
-
-        try:
-            self.network = canopen.Network()
-        except Exception:
-            log.exception("Failed to initialize CANopen network object")
-            pytest.fail("Failed to initialize CANopen network")
-            return
-
-        canopen_connect_attempts = 3
-        canopen_retry_delay = 1.0  # in seconds, lets CANopen flush
-
-        for attempt in range(1, canopen_connect_attempts + 1):
-            # Attempt to connect
-            try:
-                self.network.connect(interface="socketcan", channel=self.channel)
-                break
-            except Exception:
-                log.exception("CANopen Connection attempt #%d failed. Retrying...", attempt)
-                try:
-                    self.network.disconnect()  # Failed! attempt to disconnect before trying again.
-                except Exception:
-                    log.exception("Unable to disconnect CAN network after failed attempt")
-
-                # Try again to connect, let logs flush first.
-                if attempt < canopen_connect_attempts:
-                    time.sleep(canopen_retry_delay)
-        else:
-            pytest.fail("Failed to connect to CANopen Network")
-            return
-
+        self.network = canopen.Network()
+        self.network.bus = self.bus
+        self.network.notifier = can.Notifier(self.bus, self.network.listeners, 1.0)
         self.node = self.network.add_node(self.node_id, self._object_dictionary())
-        self.is_ready = True
 
     def teardown(self) -> None:
-        """Disconnect the CANopen network."""
         if self.network:
-            try:
-                self.network.disconnect()
-            except Exception:
-                log.exception("Error disconnecting CAN network.")
+            if self.network.notifier:
+                self.network.notifier.stop()
+            self.network.disconnect()
         self.is_ready = False
 
     @staticmethod

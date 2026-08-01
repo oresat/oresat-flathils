@@ -5,12 +5,3 @@ __pycache__/
 .ruff_cache/
 .venv/
 *.egg-info
-
-# builds
-build*/
-
-# generated files
-gen/
-
-# modules
-CANopenNode

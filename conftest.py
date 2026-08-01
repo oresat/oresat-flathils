@@ -9,10 +9,15 @@ import pytest
 if TYPE_CHECKING:
     from collections.abc import Generator
 
-from oresat_flathils.hardware.fixtures import canbus_device, rp2040_device
+from oresat_flathils.hardware.fixtures import (
+    can_interface,
+    canbus_device,
+    rp2040_device,
+    virtual_canopen_device,
+)
 from oresat_flathils.simulator.fixtures import flathils_sim
 
-log = logging.getLogger("vulcan_harness")
+log = logging.getLogger("can_harness")
 
 """
     This allows for all harnesses to have on single global configuration file
@@ -21,10 +26,12 @@ log = logging.getLogger("vulcan_harness")
     this also fixes the duplicate --run-hil argument from being a problem.
 """
 __all__ = [
+    "can_interface",
     "canbus_device",
     "flathils_environment",
     "flathils_sim",
     "rp2040_device",
+    "virtual_canopen_device",
 ]
 
 
