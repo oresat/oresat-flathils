@@ -6,13 +6,11 @@ Provides Labgrid hardware device wrappers and hardware readiness checks.
 import logging
 from typing import TYPE_CHECKING, Any
 
-import can
 import canopen
 import pytest
-from labgrid.resource import NetworkInterface
 
 if TYPE_CHECKING:
-    from labgrid import Target
+    import can
 
 H1F56_PROGRAM_SWID = 0x1F56
 
@@ -80,53 +78,23 @@ class RP2040Device(Device):
         self.is_ready = False
 
 
-class CANInterface(Device):
-    """Labgrid target and raw python-can bus."""
-
-    def __init__(self, target: Target | None = None) -> None:
-        """Initialize CANInterface with a Labgrid target."""
-        super().__init__(target)
-        self.bus: can.BusABC | None = None
-
-    def setup(self) -> None:
-        if not self.target:
-            pytest.fail("Failed to acquire Labgrid CAN adapter target")
-            return
-        iface = self.target.get_resource(NetworkInterface)
-        self.bus = can.interface.Bus(channel=iface.ifname, interface="socketcan")
-        self.is_ready = True
-
-    def teardown(self) -> None:
-        if self.bus:
-            self.bus.shutdown()
-        self.is_ready = False
-
-
 class CANopenNode:
-    """Builds a CANopen Network on to of CANInterface() bus."""
+    """Builds a CANopen Network on top of CANInterface() bus."""
 
     def __init__(self, bus: can.BusABC, node_id: int = 0x7C) -> None:
         """Initialize CANopenNode with an existing python-can bus and CANopen node ID."""
         self.bus = bus
-        self.node_id = node_id
-        self.network: canopen.Network | None = None
-        self.node: canopen.RemoteNode | None = None
+        self.network = canopen.Network(self.bus)
+        self.node = self.network.add_node(node_id, self.build_object_dictionary())
 
     def setup(self) -> None:
-        self.network = canopen.Network()
-        self.network.bus = self.bus
-        self.network.notifier = can.Notifier(self.bus, self.network.listeners, 1.0)
-        self.node = self.network.add_node(self.node_id, self._object_dictionary())
+        self.network.connect()
 
     def teardown(self) -> None:
-        if self.network:
-            if self.network.notifier:
-                self.network.notifier.stop()
-            self.network.disconnect()
-        self.is_ready = False
+        self.network.disconnect()
 
     @staticmethod
-    def _object_dictionary() -> canopen.ObjectDictionary:
+    def build_object_dictionary() -> canopen.ObjectDictionary:
         """CANopen Object Dictionary for node.
 
         Currently defines an object 0x1F56
