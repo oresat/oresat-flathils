@@ -102,7 +102,7 @@ class CANopenNode:
     @staticmethod
     def build_object_dictionary() -> canopen.ObjectDictionary:
         """CANopen Object Dictionary for node."""
-        object_dictionary = canopen.objectdictionary.ObjectDictionary()
+        object_dictionary = canopen.objectdictionary.ObjectDictionary()  # type: ignore[no-untyped-call]
 
         # 0x1F56: Program software identification (array of per-program SW IDs)
         program_swid_array = canopen.objectdictionary.Array(
