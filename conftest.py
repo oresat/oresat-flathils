@@ -18,12 +18,6 @@ from oresat_flathils.simulator.fixtures import flathils_sim
 
 log = logging.getLogger("can_harness")
 
-"""
-    This allows for all harnesses to have on single global configuration file
-    rather than having all harnesses have individual conftests, which can get cluttered.
-
-    this also fixes the duplicate --run-hil argument from being a problem.
-"""
 __all__ = [
     "bootloader_node",
     "canbus",

@@ -95,13 +95,7 @@ class CANopenNode:
 
     @staticmethod
     def build_object_dictionary() -> canopen.ObjectDictionary:
-        """CANopen Object Dictionary for node.
-
-        Currently defines an object 0x1F56
-        which is the program Software identification address used on CANopen node running on Zephyr.
-        This is an array because a node may support multiple programs
-        as in, it makes sure future expandability within FlatHILS CAN is easier.
-        """
+        """CANopen Object Dictionary for node."""
         object_dictionary = canopen.objectdictionary.ObjectDictionary()  # type: ignore[no-untyped-call]
 
         # 0x1F56: Program software identification (array of per-program SW IDs)
