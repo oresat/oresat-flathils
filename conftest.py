@@ -10,10 +10,9 @@ if TYPE_CHECKING:
     from collections.abc import Generator
 
 from oresat_flathils.hardware.fixtures import (
-    can_interface,
-    canbus_device,
+    bootloader_node,
+    canbus,
     rp2040_device,
-    virtual_canopen_device,
 )
 from oresat_flathils.simulator.fixtures import flathils_sim
 
@@ -26,12 +25,11 @@ log = logging.getLogger("can_harness")
     this also fixes the duplicate --run-hil argument from being a problem.
 """
 __all__ = [
-    "can_interface",
-    "canbus_device",
+    "bootloader_node",
+    "canbus",
     "flathils_environment",
     "flathils_sim",
     "rp2040_device",
-    "virtual_canopen_device",
 ]
 
 
