@@ -1,4 +1,3 @@
-import os
 import time
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -8,7 +7,11 @@ import pytest
 from oresat_flathils.hardware.hardware import CANopenNode
 
 if TYPE_CHECKING:
+    import can
     import canopen
+    from can import Message
+    from canopen.sdo.base import SdoVariable
+
 
 DOWNLOAD_BUFFER_SIZE = 889
 STATUS_TIMEOUT_S = 30.0
@@ -25,23 +28,16 @@ BIN_PATH = Path(__file__).parent / "zephyr_image" / "zephyr.signed.bin"
 
 
 @pytest.fixture(scope="session")
-def block_transfer(pytestconfig: pytest.Config) -> bool:
-    return bool(pytestconfig.getoption("--use-block-transfer"))
-
-@pytest.fixture(scope="session")
-def throttle_delay(pytestconfig: pytest.Config) -> float:
-    return float(pytestconfig.getoption("--throttle-delay"))
-
-@pytest.fixture(scope="session")
-def confirm_image(pytestconfig: pytest.Config) -> bool:
-    return bool(pytestconfig.getoption("--confirm-image"))
-
-@pytest.fixture(scope="session")
-def request_crc(pytestconfig: pytest.Config) -> bool:
-    return bool(pytestconfig.getoption("--request-crc"))
+def flash_settings(pytestconfig: pytest.Config) -> dict[str, bool | float]:
+    return {
+        "throttle_delay": float(pytestconfig.getoption("--throttle-delay")),
+        "block_transfer": bool(pytestconfig.getoption("--use-block-transfer")),
+        "confirm_image": bool(pytestconfig.getoption("--confirm-image")),
+        "request_crc": bool(pytestconfig.getoption("--request-crc")),
+    }
 
 
-def wait_flash_status_ok(flash_sdo, timeout_s) -> int:
+def wait_flash_status_ok(flash_sdo: SdoVariable, timeout_s: float) -> int:
     end = time.time() + timeout_s
     status = int(flash_sdo.raw)
 
@@ -52,28 +48,47 @@ def wait_flash_status_ok(flash_sdo, timeout_s) -> int:
     return status
 
 
+def throttle_bus_send(
+    monkeypatch: pytest.MonkeyPatch,
+    bus: can.BusABC,
+    throttle_delay: float,
+) -> None:
+    """Wrap bus.send so each call sleeps for throttle_delay afterward."""
+    original_send = bus.send
+
+    def throttle_send(msg: Message, timeout: float | None = None) -> None:
+        original_send(msg, timeout)
+        time.sleep(throttle_delay)
+
+    monkeypatch.setattr(bus, "send", throttle_send)
+
+
 def test_mcuboot_flash_device(
-    bootloader_node: canopen.RemoteNode, block_transfer, throttle_delay, confirm_image, request_crc
+    monkeypatch: pytest.MonkeyPatch,
+    bootloader_node: canopen.RemoteNode,
+    flash_settings: dict[str, bool | float],
 ) -> None:
     """Flash a built zephyr image with CANopen."""
     if not BIN_PATH.is_file():
         pytest.fail(f"No binary file found on: {BIN_PATH}")
 
-    size = os.path.getsize(BIN_PATH)
+    # Flags from CLI
+    throttle_delay = float(flash_settings["throttle_delay"])
+    block_transfer = bool(flash_settings["block_transfer"])
+    confirm_image = bool(flash_settings["confirm_image"])
+    request_crc = bool(flash_settings["request_crc"])
+
+    size = BIN_PATH.stat().st_size
 
     node = bootloader_node.network.add_node(
         CANopenNode.NODE_ID, CANopenNode.build_object_dictionary()
     )
 
     if block_transfer:
-        print(f"\nUsing Block transfer at a delay of {throttle_delay} sec...")
-        original_send = node.network.bus.send
-
-        def throttle_send(msg, timeout=None):
-            original_send(msg, timeout)
-            time.sleep(throttle_delay)
-
-        node.network.bus.send = throttle_send
+        bus = node.network.bus
+        if bus is None:
+            pytest.fail("CAN not available for block transfer")
+        throttle_bus_send(monkeypatch, bus, throttle_delay)
 
     node.sdo.MAX_RETRIES = SDO_RETRIES
     node.sdo.RESPONSE_TIMEOUT = SDO_TIMEOUT_S
@@ -83,18 +98,16 @@ def test_mcuboot_flash_device(
     flash_sdo = node.sdo[CANopenNode.H1F57_FLASH_STATUS][1]
 
     node.nmt.state = "PRE-OPERATIONAL"
-    time.sleep(0.5)
 
     ctrl_sdo.raw = PROGRAM_CTRL_STOP
     ctrl_sdo.raw = PROGRAM_CTRL_CLEAR
 
-    print("flashing!")
     status = wait_flash_status_ok(flash_sdo, STATUS_TIMEOUT_S)
 
     if status != 0:
         pytest.fail(f"CLEAR call to flash failed with status 0x{status:08X}")
 
-    with open(BIN_PATH, "rb") as infile:
+    with Path.open(BIN_PATH, "rb") as infile:
         outfile = data_sdo.open(
             "wb",
             buffering=DOWNLOAD_BUFFER_SIZE,
@@ -106,9 +119,6 @@ def test_mcuboot_flash_device(
         outfile.close()
     status = wait_flash_status_ok(flash_sdo, STATUS_TIMEOUT_S)
 
-    if request_crc:
-        print("requested CRC check")
-
     if status != 0:
         pytest.fail(f"FLASH failed with status 0x{status:08X}")
 
@@ -117,8 +127,4 @@ def test_mcuboot_flash_device(
 
     if confirm_image:
         node.nmt.state = "PRE-OPERATIONAL"
-        time.sleep(0.5)
         ctrl_sdo.raw = PROGRAM_CTRL_ZEPHYR_CONFIRM
-        print("requested image confirm")
-
-    print("FLASH SUCCESSFUL!!!!!")

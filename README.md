@@ -55,8 +55,7 @@ flathils test example-harness --pytest-args -v
 
 Verifies that OreSat cards using the NXP MCXN947 SoC are correctly reachable over SocketCAN using CANopen.
 
-> [!HINT]  
-> Make sure you have CAN enabled on your project!
+> **NOTE:** Make sure you have CAN enabled on your project!
 
 1. First, make sure you have a CAN connection with your device as `can0` if you do not have this, see [CAN Adapter Setup](util/can_udev.md) for setup
 
