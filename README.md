@@ -8,21 +8,21 @@ OreSat FlatHILS is a software-based testing orchestrator platform for the Portla
 
 ## Up and Running
 
-1.  Spin up a [Python virtual environment](https://docs.python.org/3/library/venv.html).
+1. Spin up a [Python virtual environment](https://docs.python.org/3/library/venv.html).
 
     ```sh
     python -m venv .venv
     source .venv/bin/activate
     ```
 
-2.  Install project dependencies inside the newly-active virtual environment
+2. Install project dependencies inside the newly-active virtual environment
 
     ```sh
     python -m pip install --upgrade pip setuptools wheel
-    python -m pip install -e .
+    python -m pip install -e . --group-dev
     ```
 
-3.  When you are done developing, deactivate the virtual environment.
+3. When you are done developing, deactivate the virtual environment.
 
     ```sh
     deactivate
@@ -33,7 +33,7 @@ OreSat FlatHILS is a software-based testing orchestrator platform for the Portla
 `flathils` cli can be invoked to list the available options using the following command.
 
 ```sh
-flathils -h
+flathils --help
 ```
 
 ### Running Test Harnesses
@@ -44,11 +44,25 @@ A "test harness" is a collection of configuration and tests for the OreSat satel
 flathils test example-harness
 ```
 
-If you find yourself needing to command pytest directly, you can pass options and arguments through `flathils` to pytest with the `--pytest_args` flag.
+If you find yourself needing to command pytest directly, you can pass options and arguments through `flathils` to pytest with the `--pytest-args` flag.
 
 ```sh
 # run the example harness and set pytest to verbose.
-flathils test example-harness --pytest_args -v
+flathils test example-harness --pytest-args -v
+```
+
+## CAN Harness
+
+Verifies that OreSat cards using the NXP MCXN947 SoC are correctly reachable over SocketCAN using CANopen.
+
+> **NOTE:** Make sure you have CAN enabled on your project!
+
+1. First, make sure you have a CAN connection with your device as `can0` if you do not have this, see [CAN Adapter Setup](util/can_udev.md) for setup
+
+2. Run a CAN harness test to ensure everything works:
+
+```sh
+flathils test can-harness --run-hil --pytest-args -v
 ```
 
 ## Tests

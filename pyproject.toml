@@ -14,6 +14,8 @@ dependencies = [
     "labgrid >= 26.0",
     "bsk >= 2.10.2",
     "click >= 8.4.0",
+    "canopen >= 2.3.0",
+    "python-can >= 4.3.0",
 ]
 
 [dependency-groups]
@@ -27,6 +29,7 @@ flathils = "oresat_flathils.cli.main:base"
 
 [tool.oresat_flathils.harnesses]
 example-harness = { harness_dir = "src/oresat_flathils/harnesses/example_harness" }
+can-harness =  { harness_dir = "src/oresat_flathils/harnesses/can_harness" }
 
 [tool.pytest.ini_options]
 markers = [
@@ -80,6 +83,7 @@ ignore = [
     # the numbers it flags are obvious from context.
     "PLR2004",  # magic value used in comparison
     "PLR0911",  # too many return statements
+    "CPY001",   # copyright notice from ruff 0.16
 ]
 
 [tool.ruff.lint.per-file-ignores]
