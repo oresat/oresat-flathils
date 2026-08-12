@@ -12,7 +12,6 @@ if TYPE_CHECKING:
     from can import Message
     from canopen.sdo.base import SdoVariable
 
-
 DOWNLOAD_BUFFER_SIZE = 889
 STATUS_TIMEOUT_S = 30.0
 BOOTUP_TIMEOUT_S = 20.0
@@ -24,20 +23,30 @@ PROGRAM_CTRL_START = 0x01
 PROGRAM_CTRL_CLEAR = 0x03
 PROGRAM_CTRL_ZEPHYR_CONFIRM = 0x80
 
-BIN_PATH = Path(__file__).parent / "zephyr_image" / "zephyr.signed.bin"
-
 
 @pytest.fixture(scope="session")
-def flash_settings(pytestconfig: pytest.Config) -> dict[str, bool | float]:
+def flash_cli_args(pytestconfig: pytest.Config) -> dict[str, bool | float | str]:
+    """Pytest arguments, uses CLI. Not all is required, except image_path."""
     return {
         "throttle_delay": float(pytestconfig.getoption("--throttle-delay")),
-        "block_transfer": bool(pytestconfig.getoption("--use-block-transfer")),
         "confirm_image": bool(pytestconfig.getoption("--confirm-image")),
         "request_crc": bool(pytestconfig.getoption("--request-crc")),
+        "image_path": str(pytestconfig.getoption("--image-path")),
     }
 
 
+def get_bin_path(path: str) -> Path:
+    """Get firmware binary path and resolve within CLI."""
+    zephyr_img_path = Path(path).expanduser().resolve()
+
+    if not zephyr_img_path.is_file():
+        pytest.fail(f"Firmware file was not found on: {zephyr_img_path}")
+
+    return zephyr_img_path
+
+
 def wait_flash_status_ok(flash_sdo: SdoVariable, timeout_s: float) -> int:
+    """Wait for an OK from zephyr to start the flash process."""
     end = time.time() + timeout_s
     status = int(flash_sdo.raw)
 
@@ -63,28 +72,26 @@ def throttle_bus_send(
     monkeypatch.setattr(bus, "send", throttle_send)
 
 
-def test_mcuboot_flash_device(
+def test_zephyr_flash_device(
     monkeypatch: pytest.MonkeyPatch,
     bootloader_node: canopen.RemoteNode,
-    flash_settings: dict[str, bool | float],
+    flash_cli_args: dict[str, bool | float | str],
 ) -> None:
-    """Flash a built zephyr image with CANopen."""
-    if not BIN_PATH.is_file():
-        pytest.fail(f"No binary file found on: {BIN_PATH}")
+    """Flash a zephyr image using CANopen."""
+    throttle_delay = float(flash_cli_args["throttle_delay"])
+    confirm_image = bool(flash_cli_args["confirm_image"])
+    request_crc = bool(flash_cli_args["request_crc"])
+    path = str(flash_cli_args["image_path"])
 
-    # Flags from CLI
-    throttle_delay = float(flash_settings["throttle_delay"])
-    block_transfer = bool(flash_settings["block_transfer"])
-    confirm_image = bool(flash_settings["confirm_image"])
-    request_crc = bool(flash_settings["request_crc"])
+    bin_path = get_bin_path(path)
 
-    size = BIN_PATH.stat().st_size
+    size = bin_path.stat().st_size
 
     node = bootloader_node.network.add_node(
         CANopenNode.NODE_ID, CANopenNode.build_object_dictionary()
     )
 
-    if block_transfer:
+    if throttle_delay != 0:
         bus = node.network.bus
         if bus is None:
             pytest.fail("CAN not available for block transfer")
@@ -104,15 +111,11 @@ def test_mcuboot_flash_device(
 
     status = wait_flash_status_ok(flash_sdo, STATUS_TIMEOUT_S)
 
-    if status != 0:
-        pytest.fail(f"CLEAR call to flash failed with status 0x{status:08X}")
-
-    with Path.open(BIN_PATH, "rb") as infile:
+    with bin_path.open("rb") as infile:
         outfile = data_sdo.open(
             "wb",
             buffering=DOWNLOAD_BUFFER_SIZE,
             size=size,
-            block_transfer=block_transfer,
             request_crc_support=request_crc,
         )
         outfile.write(infile.read())

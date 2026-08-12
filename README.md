@@ -2,6 +2,17 @@
 
 The Hardware-in-the-Loop testing software infrastructure for OreSat.
 
+## Index
+
+- [Overview](#overview)
+- [Up and Running](#up-and-running)
+  - [CLI](#cli)
+  - [Running Test Harnesses](#running-test-harnesses)
+- [CAN Harness](#can-harness)
+- [Bootloader Harness](#bootloader-harness)
+  - [Aditional arguments for bootloader-harness](#aditional-arguments-for-bootloader-harness)
+- [Tests](#tests)
+
 ## Overview
 
 OreSat FlatHILS is a software-based testing orchestrator platform for the Portland State Aerospace Society (PSAS) CubeSat called OreSat -- Oregon's First Satellite.
@@ -57,13 +68,43 @@ Verifies that OreSat cards using the NXP MCXN947 SoC are correctly reachable ove
 
 > **NOTE:** Make sure you have CAN enabled on your project!
 
-1. First, make sure you have a CAN connection with your device as `can0` if you do not have this, see [CAN Adapter Setup](util/can_udev.md) for setup
+1. First, make sure you have a CAN connection with your device as `can0` if you do not have this, see [CAN Adapter Setup](util/can_udev.md) for setup. your CAN device can be named anything.
 
 2. Run a CAN harness test to ensure everything works:
 
 ```sh
-flathils test can-harness --run-hil --pytest-args -v
+flathils test can-harness --run-hil --pytest-args "--can-device can0 -v"
 ```
+
+## Bootloader Harness
+
+Verifies that OreSat cards running the NXP MCXN947 SoC can flash a Zephyr image over CAN using CANopen.
+
+> **NOTE:** Make sure you have CAN enabled on your project!
+
+1. First, make sure you have a CAN connection with your device as `can0` if you do not have this, see [CAN Adapter Setup](util/can_udev.md) for setup. your CAN device can be named anything.
+
+2. Find the path to your zephyr binary file when built. this is typically located in: `~/path/to/build/{APPLICATION}/zephyr/zephyr.signed.bin` where `{APPLICATION}` is the name of your app.
+
+3. Run a flahing test to ensure you can flash images.
+
+```sh
+flathils test bootloader-harness --run-hil --pytest-args "--can-device can0 --image-path ~/path/to/zephyr.signed.bin"
+```
+
+### Aditional arguments for bootloader-harness
+
+- **`--image-path`**  
+  File path to your Zephyr image. Required.
+
+- **`--throttle-delay <float>`**  
+  Time to throttle CAN data packets
+  
+- **`--confirm-image`**  
+  Enables Zephyr's image confirmation.
+
+- **`--request-crc`**
+  Enables Zephyr's CRC image checking.
 
 ## Tests
 

@@ -80,7 +80,6 @@ class RP2040Device(Device):
 class CANopenNode:
     """Builds a CANopen Network on top of CANInterface() bus."""
 
-    # Constants used for object dictionary
     H1F56_PROGRAM_SWID = 0x1F56
     H1F50_PROGRAM_DATA = 0x1F50
     H1F51_PROGRAM_CTRL = 0x1F51
@@ -104,7 +103,7 @@ class CANopenNode:
         """CANopen Object Dictionary for node."""
         object_dictionary = canopen.objectdictionary.ObjectDictionary()  # type: ignore[no-untyped-call]
 
-        # 0x1F56: Program software identification (array of per-program SW IDs)
+        # 0x1F56: Program software identification.
         program_swid_array = canopen.objectdictionary.Array(
             "Program software ID", CANopenNode.H1F56_PROGRAM_SWID
         )
@@ -117,7 +116,7 @@ class CANopenNode:
 
         object_dictionary.add_object(program_swid_array)
 
-        # 0x1F50: Program Data (used for block downloads)
+        # 0x1F50: Program Data, controls block stream of data.
         program_data_array = canopen.objectdictionary.Array(
             "Program data", CANopenNode.H1F50_PROGRAM_DATA
         )
@@ -130,7 +129,7 @@ class CANopenNode:
 
         object_dictionary.add_object(program_data_array)
 
-        # 0xF151: Program control
+        # 0xF151: Program control, controls FW update process.
         program_ctrl_array = canopen.objectdictionary.Array(
             "Program control array", CANopenNode.H1F51_PROGRAM_CTRL
         )
@@ -142,7 +141,7 @@ class CANopenNode:
 
         object_dictionary.add_object(program_ctrl_array)
 
-        # 0xF157: Flash status
+        # 0xF157: Flash status, tells if update is progressing or errored.
         program_flash_status_array = canopen.objectdictionary.Array(
             "Flash status", CANopenNode.H1F57_FLASH_STATUS
         )

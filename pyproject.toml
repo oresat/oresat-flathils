@@ -28,9 +28,9 @@ dev = [
 flathils = "oresat_flathils.cli.main:base"
 
 [tool.oresat_flathils.harnesses]
-example-harness =   { harness_dir = "src/oresat_flathils/harnesses/example_harness" }
-can-harness =       { harness_dir = "src/oresat_flathils/harnesses/can_harness" }
-mcuboot-harness =   { harness_dir = "src/oresat_flathils/harnesses/mcuboot_harness" }
+example-harness =    { harness_dir = "src/oresat_flathils/harnesses/example_harness" }
+can-harness =        { harness_dir = "src/oresat_flathils/harnesses/can_harness" }
+bootloader-harness = { harness_dir = "src/oresat_flathils/harnesses/bootloader_harness" }
 
 [tool.pytest.ini_options]
 markers = [

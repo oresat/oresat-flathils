@@ -4,17 +4,10 @@ This document covers a one-time setup to make a CAN-to-USB adapter
 automatically appear as a SocketCAN interface, so you don't need to bring
 it up manually every session.
 
-<<<<<<< Updated upstream
 > [!NOTE]
 > If you are running candlelight firmware or an equivalent on your adapter, you may skip all of this. Everything should already be set up.
 
 ## Prerequisites
-=======
-> [!IMPORTANT]
-> If you have a USB-CAN Adapter with the candlelight firmware, you should not have to do this.
-
-### Prerequisites
->>>>>>> Stashed changes
 
   1. `can-utils` installed
   2. A USB-CAN adapter (this tutorial uses a Copperforge VulCAN)
@@ -55,11 +48,7 @@ sudo systemctl daemon-reloadk
 Run the following commands:
 
 ```sh
-<<<<<<< Updated upstream
 ls -l /dev/can0
-=======
-ls -la /dev/can0
->>>>>>> Stashed changes
 systemctl status slcand@can0.service
 ip link show can0
 ```
@@ -102,32 +91,8 @@ can0: <NOARP,UP,LOWER_UP> mtu 16 qdisc pfifo_fast state UP mode DEFAULT group de
 
 **`ls -l /dev/can0` shows nothing after installing the rule:**
 
-<<<<<<< Updated upstream
 Reloading udev rules does not apply to devices already plugged in. Physically unplug and
 replug the adapter.
-=======
-Check for a hyphen in the symlink/instance name. systemd auto-generates a
-`.device` unit for every device node by escaping its path, and a literal
-`-` in the name itself is ambiguous with that escaping, it can cause
-systemd to derive the wrong unit name entirely. Avoid hyphens in the value
-passed to `SYMLINK+=` and the systemd instance name; this is why the rule
-uses `can0`, not `flathils-can0`.
-
-**`ls -la /dev/can0` shows nothing after installing the rule:**
-
-The rule only fires on `ACTION=="add"`. Reloading udev rules does not
-apply to devices already plugged in. Physically unplug and
-replug the adapter. To confirm the rule is even being evaluated:
-```sh
-udevadm test $(udevadm info -q path -n /dev/ttyACM0) 2>&1 | grep -i flathils
-```
-
-**Interface exists but stays `state DOWN` and no traffic flows.**
-
-Confirm `ExecStartPost=/usr/sbin/ip link set %i up` is present in the
-installed `/etc/systemd/system/slcand@.service` as `slcand` creates the
-netdev but does not bring it up on its own.
->>>>>>> Stashed changes
 
 **Adapter isn't detected by the udev rule at all.**
 

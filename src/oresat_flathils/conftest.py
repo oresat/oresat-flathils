@@ -35,6 +35,17 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         default=False,
         help="Run Hardware-in-the-Loop (HIL) tests alongside isolated software tests.",
     )
+    parser.addoption(
+        "--can-device",
+        action="store",
+        default=None,
+        help="CAN device to use for HIL testing",
+    )
+
+
+@pytest.fixture
+def can_device(request: pytest.FixtureRequest) -> str | None:
+    return str(request.config.getoption("--can-device"))
 
 
 @pytest.fixture(scope="session", autouse=True)
