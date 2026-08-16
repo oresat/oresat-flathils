@@ -1,4 +1,4 @@
-"""Test Configuation file for Example Harness."""
+"""Global confiuguration for FlatHILS device testing."""
 
 import logging
 import os
@@ -6,15 +6,21 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from oresat_flathils.hardware.fixtures import rp2040_device
-from oresat_flathils.simulator.fixtures import flathils_sim
-
 if TYPE_CHECKING:
     from collections.abc import Generator
 
-log = logging.getLogger("example_harness")
+from oresat_flathils.hardware.fixtures import (
+    bootloader_node,
+    canbus,
+    rp2040_device,
+)
+from oresat_flathils.simulator.fixtures import flathils_sim
+
+log = logging.getLogger("can_harness")
 
 __all__ = [
+    "bootloader_node",
+    "canbus",
     "flathils_environment",
     "flathils_sim",
     "rp2040_device",
