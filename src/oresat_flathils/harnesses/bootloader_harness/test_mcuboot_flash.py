@@ -82,6 +82,7 @@ def test_zephyr_flash_device(
     confirm_image = bool(flash_cli_args["confirm_image"])
     request_crc = bool(flash_cli_args["request_crc"])
     path = str(flash_cli_args["image_path"])
+    is_throttling: bool
 
     bin_path = get_bin_path(path)
 
@@ -92,10 +93,13 @@ def test_zephyr_flash_device(
     )
 
     if throttle_delay != 0:
+        is_throttling = True
         bus = node.network.bus
         if bus is None:
             pytest.fail("CAN not available for block transfer")
         throttle_bus_send(monkeypatch, bus, throttle_delay)
+    else:
+        is_throttling = False
 
     node.sdo.MAX_RETRIES = SDO_RETRIES
     node.sdo.RESPONSE_TIMEOUT = SDO_TIMEOUT_S
@@ -117,6 +121,7 @@ def test_zephyr_flash_device(
             buffering=DOWNLOAD_BUFFER_SIZE,
             size=size,
             request_crc_support=request_crc,
+            block_transfer=is_throttling,
         )
         outfile.write(infile.read())
         outfile.close()

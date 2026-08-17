@@ -1,11 +1,11 @@
 """OreSat FlatHILS Core Module Test Runner."""
 
 import logging
-import tomllib
-from pathlib import Path
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 import pytest
+
+from oresat_flathils.cli.harnesses import harness_dir
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -22,33 +22,15 @@ def run_pytest(harness: str, run_hil: bool, pytest_args: Iterable[str]) -> int: 
         args.append("--run-hil")
 
     if harness:
-        try:
-            config = _get_harness_config(harness)
-            harness_dir = config.get("harness_dir")
+        target_dir = harness_dir(harness)
 
-            if harness_dir:
-                env_path = Path(harness_dir) / "env.yaml"
+        if target_dir is None:
+            raise ValueError(f"Harness '{harness}' not found in pyproject.toml")
 
-                if env_path.exists() and env_path.stat().st_size > 0:
-                    args.extend(["--lg-env", str(env_path)])
-                args.append(harness_dir)
+        env_path = target_dir / "env.yaml"
 
-        except Exception:
-            log.exception("Error loading harness config")
-
-            return 1
+        if env_path.exists() and env_path.stat().st_size > 0:
+            args.extend(["--lg-env", str(env_path)])
+        args.append(str(target_dir))
 
     return pytest.main(args)
-
-
-def _get_harness_config(harness_name: str) -> dict[str, str]:
-    """Fetch harness configuration from project config."""
-    with Path("pyproject.toml").open("rb") as f:
-        config = tomllib.load(f)
-
-    harnesses = config.get("tool", {}).get("oresat_flathils", {}).get("harnesses", {})
-
-    if harness_name not in harnesses:
-        raise ValueError(f"Harness '{harness_name}' not found in pyproject.toml")
-
-    return cast("dict[str, str]", harnesses[harness_name])

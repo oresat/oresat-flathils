@@ -8,9 +8,6 @@ The Hardware-in-the-Loop testing software infrastructure for OreSat.
 - [Up and Running](#up-and-running)
   - [CLI](#cli)
   - [Running Test Harnesses](#running-test-harnesses)
-- [CAN Harness](#can-harness)
-- [Bootloader Harness](#bootloader-harness)
-  - [Aditional arguments for bootloader-harness](#aditional-arguments-for-bootloader-harness)
 - [Tests](#tests)
 
 ## Overview
@@ -55,56 +52,21 @@ A "test harness" is a collection of configuration and tests for the OreSat satel
 flathils test example-harness
 ```
 
+You can look at all availible harnesses with the following command.
+
+```sh
+flathils list harnesses
+```
+
+Some harnesses may have extra arguments that are only used by them, you can see them using this command.
+
+```sh
+flathilts list-args exmaple-harness
+```
+
 If you find yourself needing to command pytest directly, you can pass options and arguments through `flathils` to pytest with the `--pytest-args` flag.
 
-```sh
-# run the example harness and set pytest to verbose.
-flathils test example-harness --pytest-args -v
-```
-
-## CAN Harness
-
-Verifies that OreSat cards using the NXP MCXN947 SoC are correctly reachable over SocketCAN using CANopen.
-
-> **NOTE:** Make sure you have CAN enabled on your project!
-
-1. First, make sure you have a CAN connection with your device as `can0` if you do not have this, see [CAN Adapter Setup](util/can_udev.md) for setup. your CAN device can be named anything.
-
-2. Run a CAN harness test to ensure everything works:
-
-```sh
-flathils test can-harness --run-hil --pytest-args "--can-device can0 -v"
-```
-
-## Bootloader Harness
-
-Verifies that OreSat cards running the NXP MCXN947 SoC can flash a Zephyr image over CAN using CANopen.
-
-> **NOTE:** Make sure you have CAN enabled on your project!
-
-1. First, make sure you have a CAN connection with your device as `can0` if you do not have this, see [CAN Adapter Setup](util/can_udev.md) for setup. your CAN device can be named anything.
-
-2. Find the path to your zephyr binary file when built. this is typically located in: `~/path/to/build/{APPLICATION}/zephyr/zephyr.signed.bin` where `{APPLICATION}` is the name of your app.
-
-3. Run a flahing test to ensure you can flash images.
-
-```sh
-flathils test bootloader-harness --run-hil --pytest-args "--can-device can0 --image-path ~/path/to/zephyr.signed.bin"
-```
-
-### Aditional arguments for bootloader-harness
-
-- **`--image-path`**  
-  File path to your Zephyr image. Required.
-
-- **`--throttle-delay <float>`**  
-  Time to throttle CAN data packets
-  
-- **`--confirm-image`**  
-  Enables Zephyr's image confirmation.
-
-- **`--request-crc`**
-  Enables Zephyr's CRC image checking.
+You can see what harnesses are availible and what they can do on [Harnesses](docs/harnessses.md)
 
 ## Tests
 
