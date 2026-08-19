@@ -103,54 +103,47 @@ class CANopenNode:
         """CANopen Object Dictionary for node."""
         object_dictionary = canopen.objectdictionary.ObjectDictionary()  # type: ignore[no-untyped-call]
 
-        # 0x1F56: Program software identification.
-        program_swid_array = canopen.objectdictionary.Array(
-            "Program software ID", CANopenNode.H1F56_PROGRAM_SWID
-        )
+        CANopenNode._add_program_entry(
+            object_dictionary,
+            name="Program software ID",
+            index=CANopenNode.H1F56_PROGRAM_SWID,
+            data_type=canopen.objectdictionary.UNSIGNED32,
+        )  # 0x1F56: Program software identification.
 
-        program_swid_var = canopen.objectdictionary.Variable(
-            "", CANopenNode.H1F56_PROGRAM_SWID, subindex=1
-        )
-        program_swid_var.data_type = canopen.objectdictionary.UNSIGNED32
-        program_swid_array.add_member(program_swid_var)
+        CANopenNode._add_program_entry(
+            object_dictionary,
+            name="Program data",
+            index=CANopenNode.H1F50_PROGRAM_DATA,
+            data_type=canopen.objectdictionary.DOMAIN,
+        )  # 0x1F50: Program data, controls block stream of data.
 
-        object_dictionary.add_object(program_swid_array)
+        CANopenNode._add_program_entry(
+            object_dictionary,
+            name="Program control array",
+            index=CANopenNode.H1F51_PROGRAM_CTRL,
+            data_type=canopen.objectdictionary.UNSIGNED8,
+        )  # 0xF151: Program control, controls FW update process.
 
-        # 0x1F50: Program Data, controls block stream of data.
-        program_data_array = canopen.objectdictionary.Array(
-            "Program data", CANopenNode.H1F50_PROGRAM_DATA
-        )
-
-        program_data_var = canopen.objectdictionary.Variable(
-            "", CANopenNode.H1F50_PROGRAM_DATA, subindex=1
-        )
-        program_data_var.data_type = canopen.objectdictionary.DOMAIN
-        program_data_array.add_member(program_data_var)
-
-        object_dictionary.add_object(program_data_array)
-
-        # 0xF151: Program control, controls FW update process.
-        program_ctrl_array = canopen.objectdictionary.Array(
-            "Program control array", CANopenNode.H1F51_PROGRAM_CTRL
-        )
-        program_ctrl_var = canopen.objectdictionary.Variable(
-            "", CANopenNode.H1F51_PROGRAM_CTRL, subindex=1
-        )
-        program_ctrl_var.data_type = canopen.objectdictionary.UNSIGNED8
-        program_ctrl_array.add_member(program_ctrl_var)
-
-        object_dictionary.add_object(program_ctrl_array)
-
-        # 0xF157: Flash status, tells if update is progressing or errored.
-        program_flash_status_array = canopen.objectdictionary.Array(
-            "Flash status", CANopenNode.H1F57_FLASH_STATUS
-        )
-        program_flash_status_var = canopen.objectdictionary.Variable(
-            "", CANopenNode.H1F57_FLASH_STATUS, subindex=1
-        )
-        program_flash_status_var.data_type = canopen.objectdictionary.UNSIGNED32
-        program_flash_status_array.add_member(program_flash_status_var)
-
-        object_dictionary.add_object(program_flash_status_array)
+        CANopenNode._add_program_entry(
+            object_dictionary,
+            name="Flash status",
+            index=CANopenNode.H1F57_FLASH_STATUS,
+            data_type=canopen.objectdictionary.UNSIGNED32,
+        )  # 0xF157: Flash status, tells if update is progressing or errored.
 
         return object_dictionary
+
+    @staticmethod
+    def _add_program_entry(
+        object_dictionary: canopen.ObjectDictionary,
+        *,
+        name: str,
+        index: int,
+        data_type: int,
+    ) -> None:
+        """Add a single-member array entry to the object dictionary."""
+        array = canopen.objectdictionary.Array(name, index)
+        variable = canopen.objectdictionary.Variable("", index, subindex=1)
+        variable.data_type = data_type
+        array.add_member(variable)
+        object_dictionary.add_object(array)

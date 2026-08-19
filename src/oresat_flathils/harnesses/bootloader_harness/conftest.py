@@ -11,11 +11,6 @@ if TYPE_CHECKING:
 def pytest_addoption(parser: pytest.Parser) -> None:
     """Register mcuboot harness command-line options."""
     parser.addoption(
-        "--use-block-transfer",
-        action="store_true",
-        default=False,
-    )
-    parser.addoption(
         "--confirm-image",
         action="store_true",
         default=False,
