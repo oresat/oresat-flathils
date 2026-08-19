@@ -10,7 +10,7 @@ The Hardware-in-the-Loop testing software infrastructure for OreSat.
   - [Running Test Harnesses](#running-test-harnesses)
 - [CAN Harness](#can-harness)
 - [Bootloader Harness](#bootloader-harness)
-  - [Aditional arguments for bootloader-harness](#aditional-arguments-for-bootloader-harness)
+  - [Additional arguments for bootloader-harness](#additional-arguments-for-bootloader-harness)
 - [Tests](#tests)
 
 ## Overview
@@ -49,7 +49,7 @@ flathils --help
 
 ### Running Test Harnesses
 
-A "test harness" is a collection of configuration and tests for the OreSat satellite subject under test (SUT). An example harness is provided to demonstrate the structure of a test harness and can be run witht he following command.
+A "test harness" is a collection of configuration and tests for the OreSat satellite subject under test (SUT). An example harness is provided to demonstrate the structure of a test harness and can be run with the following command.
 
 ```sh
 flathils test example-harness
@@ -86,13 +86,13 @@ Verifies that OreSat cards running the NXP MCXN947 SoC can flash a Zephyr image 
 
 2. Find the path to your zephyr binary file when built. this is typically located in: `~/path/to/build/{APPLICATION}/zephyr/zephyr.signed.bin` where `{APPLICATION}` is the name of your app.
 
-3. Run a flahing test to ensure you can flash images.
+3. Run a flashing test to ensure you can flash images.
 
 ```sh
 flathils test bootloader-harness --run-hil --pytest-args "--can-device can0 --image-path ~/path/to/zephyr.signed.bin"
 ```
 
-### Aditional arguments for bootloader-harness
+### Additional arguments for bootloader-harness
 
 - **`--image-path`**  
   File path to your Zephyr image. Required.
