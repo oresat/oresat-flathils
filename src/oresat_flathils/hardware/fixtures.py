@@ -19,7 +19,7 @@ log = logging.getLogger("hardware.fixtures")
 @pytest.fixture
 def can_device(pytestconfig: pytest.Config) -> str:
     """Pytest argument for CAN device."""
-    return str(pytestconfig.getoption("--can_device"))
+    return str(pytestconfig.getoption("--can-device"))
 
 
 @pytest.fixture

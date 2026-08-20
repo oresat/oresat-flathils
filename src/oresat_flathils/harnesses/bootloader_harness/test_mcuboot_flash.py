@@ -25,13 +25,21 @@ PROGRAM_CTRL_ZEPHYR_CONFIRM = 0x80
 
 
 @pytest.fixture(scope="session")
-def flash_cli_args(pytestconfig: pytest.Config) -> dict[str, bool | float | str]:
-    """Pytest arguments, uses CLI. Not all is required, except image_path."""
+def flash_cli_args(pytestconfig: pytest.Config) -> dict[str, bool | float | str | None]:
+    """Pytest arguments, uses CLI. image_path is required."""
+    image_path = pytestconfig.getoption("--image-path")
+    can_device = pytestconfig.getoption("--can-device")
+    if not image_path:
+        pytest.fail("--image-path is required for this test session")
+    if not can_device:
+        pytest.fail("--can-device is required for this test session")
+
     return {
         "throttle_delay": float(pytestconfig.getoption("--throttle-delay")),
         "confirm_image": bool(pytestconfig.getoption("--confirm-image")),
         "request_crc": bool(pytestconfig.getoption("--request-crc")),
-        "image_path": str(pytestconfig.getoption("--image-path")),
+        "can_device": can_device,
+        "image_path": image_path,
     }
 
 
@@ -94,8 +102,6 @@ def test_zephyr_flash_device(
         if bus is None:
             pytest.fail("CAN not available for block transfer")
         throttle_bus_send(monkeypatch, bus, throttle_delay)
-    else:
-        is_throttling = False
 
     bootloader_node.sdo.MAX_RETRIES = SDO_RETRIES
     bootloader_node.sdo.RESPONSE_TIMEOUT = SDO_TIMEOUT_S
