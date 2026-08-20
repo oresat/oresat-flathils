@@ -35,11 +35,35 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         default=False,
         help="Run Hardware-in-the-Loop (HIL) tests alongside isolated software tests.",
     )
+
+    """ Args for CAN/ Booloader Harness """
     parser.addoption(
         "--can-device",
         action="store",
         default=None,
         help="CAN device to use for HIL testing",
+    )
+
+    """ Args for Bootloader Harness """
+    parser.addoption(
+        "--confirm-image",
+        action="store_true",
+        default=False,
+    )
+    parser.addoption(
+        "--request-crc",
+        action="store_true",
+        default=False,
+    )
+    parser.addoption(
+        "--throttle-delay",
+        action="store",
+        default=0,
+    )
+    parser.addoption(
+        "--image-path",
+        action="store",
+        default=None,
     )
 
 

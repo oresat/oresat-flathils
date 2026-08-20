@@ -88,30 +88,24 @@ def test_zephyr_flash_device(
 
     size = bin_path.stat().st_size
 
-    node = bootloader_node.network.add_node(
-        CANopenNode.NODE_ID, CANopenNode.build_object_dictionary()
-    )
-
     if throttle_delay != 0:
         is_throttling = True
-        bus = node.network.bus
+        bus = bootloader_node.network.bus
         if bus is None:
             pytest.fail("CAN not available for block transfer")
         throttle_bus_send(monkeypatch, bus, throttle_delay)
 
-    node.sdo.MAX_RETRIES = SDO_RETRIES
-    node.sdo.RESPONSE_TIMEOUT = SDO_TIMEOUT_S
+    bootloader_node.sdo.MAX_RETRIES = SDO_RETRIES
+    bootloader_node.sdo.RESPONSE_TIMEOUT = SDO_TIMEOUT_S
 
-    data_sdo = node.sdo[CANopenNode.H1F50_PROGRAM_DATA][1]
-    ctrl_sdo = node.sdo[CANopenNode.H1F51_PROGRAM_CTRL][1]
-    flash_sdo = node.sdo[CANopenNode.H1F57_FLASH_STATUS][1]
+    data_sdo = bootloader_node.sdo[CANopenNode.H1F50_PROGRAM_DATA][1]
+    ctrl_sdo = bootloader_node.sdo[CANopenNode.H1F51_PROGRAM_CTRL][1]
+    flash_sdo = bootloader_node.sdo[CANopenNode.H1F57_FLASH_STATUS][1]
 
-    node.nmt.state = "PRE-OPERATIONAL"
+    bootloader_node.nmt.state = "PRE-OPERATIONAL"
 
     ctrl_sdo.raw = PROGRAM_CTRL_STOP
     ctrl_sdo.raw = PROGRAM_CTRL_CLEAR
-
-    status = wait_flash_status_ok(flash_sdo, STATUS_TIMEOUT_S)
 
     with bin_path.open("rb") as infile:
         outfile = data_sdo.open(
@@ -123,14 +117,14 @@ def test_zephyr_flash_device(
         )
         outfile.write(infile.read())
         outfile.close()
-    status = wait_flash_status_ok(flash_sdo, STATUS_TIMEOUT_S)
 
+    status = wait_flash_status_ok(flash_sdo, STATUS_TIMEOUT_S)
     if status != 0:
         pytest.fail(f"FLASH failed with status 0x{status:08X}")
 
     ctrl_sdo.raw = PROGRAM_CTRL_START
-    node.nmt.wait_for_bootup(timeout=BOOTUP_TIMEOUT_S)
+    bootloader_node.nmt.wait_for_bootup(timeout=BOOTUP_TIMEOUT_S)
 
     if confirm_image:
-        node.nmt.state = "PRE-OPERATIONAL"
+        bootloader_node.nmt.state = "PRE-OPERATIONAL"
         ctrl_sdo.raw = PROGRAM_CTRL_ZEPHYR_CONFIRM
