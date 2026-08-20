@@ -84,13 +84,14 @@ class CANopenNode:
     H1F50_PROGRAM_DATA = 0x1F50
     H1F51_PROGRAM_CTRL = 0x1F51
     H1F57_FLASH_STATUS = 0x1F57
-    NODE_ID = 0x7C
+    DEFAULT_NODE_ID = 0x7C
 
-    def __init__(self, bus: can.BusABC) -> None:
+    def __init__(self, bus: can.BusABC, node_id: int = DEFAULT_NODE_ID) -> None:
         """Initialize CANopenNode with an existing python-can bus and CANopen node ID."""
         self.bus = bus
+        self.node_id = node_id
         self.network = canopen.Network(self.bus)
-        self.node = self.network.add_node(self.NODE_ID, self.build_object_dictionary())
+        self.node = self.network.add_node(self.node_id, self.build_object_dictionary())
 
     def setup(self) -> None:
         self.network.connect()
