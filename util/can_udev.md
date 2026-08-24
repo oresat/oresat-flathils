@@ -18,7 +18,7 @@ It is important to Update `ATTRS{idVendor} / ATTRS{idProduct}` in `99-flathils-c
 ## Installing
 
 > [!WARNING]
-> It is recomended to use a Linux-based OS installed on the device itself.
+> It is recommended to use a Linux-based OS installed on the device itself.
 
 First, open a terminal and make sure you're in `/path/to/oresat-flathils/util`.
 
