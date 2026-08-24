@@ -49,7 +49,8 @@ def harnesses() -> None:
         parser = pytest.Parser()
         add_fn(parser)
         click.echo(f"{name}:")
-        for opt in parser.anonymous.options:
+        for opt in parser._anonymous.options:  # noqa: SLF001
+            # pytest.Parser has no public API for listing registered options
             flag = opt.names()[-1]
             help_text = opt.attrs().get("help", "")
             default = opt.attrs().get("default")
