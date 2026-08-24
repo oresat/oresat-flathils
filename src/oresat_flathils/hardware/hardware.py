@@ -4,6 +4,8 @@ Provides Labgrid hardware device wrappers and hardware readiness checks.
 """
 
 import logging
+import re
+import time
 from typing import TYPE_CHECKING, Any
 
 import canopen
@@ -36,6 +38,102 @@ class Device:
     def teardown(self) -> None:
         """Release hardware device and return to a safe neutral state."""
         raise NotImplementedError
+
+
+_STATUS_RE = re.compile(
+    rb"LED: ([\d.]+).*Heatsink: ([\d.]+).*Cell: ([\d.]+).*"
+    rb"VIOLET:(\d+)% WHITE:(\d+)% CYAN:(\d+)%\s+HAL:(\d+)%"
+)
+
+class SolarSimulatorDevice(Device):
+    """Drives the Solar Simulator device over usb_cdc.data."""
+
+    def setup(self) -> None:
+        if not self.target:
+            import pytest
+            pytest.skip("Failed to acquire Labgrid solar-simulator target")
+            return
+
+        self.serial = self.target.get_driver("SerialDriver")
+        self.target.activate(self.serial)
+        # self._drain()
+
+        # Don't gate on the boot-time READY write -- it may already have been
+        # missed. Prove liveness with a real round trip instead, starting
+        # from a known-safe state.
+        self.set_intensity(0)
+        if self.read_status(timeout=5.0) is None:
+            import pytest
+            pytest.fail(
+                "solar simulator did not respond on usb_cdc.data -- "
+                "unpowered, unflashed, or wedged from a prior bad message"
+            )
+        self.is_ready = True
+
+    def set_intensity(self, percent: int) -> None:
+        if not 0 <= percent <= 100:
+            raise ValueError(f"intensity must be 0-100, got {percent}")
+        self.serial.write(f"{percent}\n".encode())
+
+    def read_status(self, timeout: float = 2.0) -> dict[str, Any] | None:
+        line = self._read_line(timeout=timeout)
+        match = _STATUS_RE.search(line)
+        if not match:
+            return None
+        led, heatsink, cell, v, w, c, h = match.groups()
+        return {
+            "led_c": float(led), "heatsink_c": float(heatsink), "cell_c": float(cell),
+            "violet_pct": int(v), "white_pct": int(w), "cyan_pct": int(c), "halogen_pct": int(h),
+        }
+
+    def _read_line(self, timeout: float = 2.0) -> bytes:
+        """Accumulate bytes until a newline is seen or the deadline passes."""
+        deadline = time.monotonic() + timeout
+        buf = b""
+        while time.monotonic() < deadline:
+            remaining = max(deadline - time.monotonic(), 0)
+            chunk = self.serial.read(timeout=remaining)
+            if chunk:
+                buf += chunk
+                print(f"DEBUG _read_line accumulated: {buf!r}")  # temporary
+                if b"\n" in buf:
+                    break
+        return buf
+
+    # def _drain(self) -> None:
+    #     """Discard any bytes left over from a previous session."""
+    #     while True:
+    #         leftover = self.serial.read(timeout=5)
+    #         if not leftover:
+    #             break
+
+    # def read_status(self, timeout: float = 2.0) -> dict[str, Any] | None:
+    #     line = self.serial.read(timeout=timeout)
+    #     print(f"DEBUG raw read: {line!r}")
+    #     match = _STATUS_RE.search(line)
+    #     if not match:
+    #         return None
+    #     led, heatsink, cell, v, w, c, h = match.groups()
+    #     return {
+    #         "led_c": float(led), "heatsink_c": float(heatsink), "cell_c": float(cell),
+    #         "violet_pct": int(v), "white_pct": int(w), "cyan_pct": int(c), "halogen_pct": int(h),
+    #     }
+
+    def teardown(self) -> None:
+        if self.target:
+            try:
+                self.set_intensity(0)
+            finally:
+                self.target.deactivate(self.serial)
+        self.is_ready = False
+
+    # def teardown(self) -> None:
+    #     if self.target:
+    #         try:
+    #             self.set_intensity(0)  # leave the bench safe -- run() never exits on its own
+    #         finally:
+    #             self.target.deactivate()
+    #     self.is_ready = False
 
 
 class RP2040Device(Device):

@@ -31,7 +31,7 @@ flathils = "oresat_flathils.cli.main:base"
 example-harness =    { harness_dir = "src/oresat_flathils/harnesses/example_harness" }
 can-harness =        { harness_dir = "src/oresat_flathils/harnesses/can_harness" }
 bootloader-harness = { harness_dir = "src/oresat_flathils/harnesses/bootloader_harness" }
-solar-harness =      { harness_dir = "src/oresat_flathils/harnesses/solar_harness" }
+solar-harness =      { harness_dir = "src/oresat_flathils/harnesses/solar_module_harness" }
 
 [tool.pytest.ini_options]
 markers = [

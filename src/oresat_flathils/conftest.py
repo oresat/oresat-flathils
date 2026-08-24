@@ -13,6 +13,7 @@ from oresat_flathils.hardware.fixtures import (
     bootloader_node,
     canbus,
     rp2040_device,
+    solar_sim_device,
 )
 from oresat_flathils.simulator.fixtures import flathils_sim
 
@@ -24,6 +25,7 @@ __all__ = [
     "flathils_environment",
     "flathils_sim",
     "rp2040_device",
+    "solar_sim_device",
 ]
 
 
