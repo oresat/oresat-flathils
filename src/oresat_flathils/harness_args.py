@@ -22,7 +22,7 @@ def harness(
     return decorator
 
 
-@harness("hil")
+@harness("run-hil")
 def add_hil_args(parser: pytest.Parser) -> None:
     """HIL harness args."""
     parser.addoption(
@@ -33,18 +33,18 @@ def add_hil_args(parser: pytest.Parser) -> None:
     )
 
 
-@harness("can")
+@harness("can-harness / bootloader-harness")
 def add_can_args(parser: pytest.Parser) -> None:
     """CAN/bootloader harness args."""
     parser.addoption(
         "--can-device",
         action="store",
         default=None,
-        help="CAN device to use for HIL testing",
+        help="CAN device to use for HIL testing (Required for harnesses that use CAN.)",
     )
 
 
-@harness("bootloader")
+@harness("bootloader-harness")
 def add_bootloader_args(parser: pytest.Parser) -> None:
     """Bootloader harness args."""
     parser.addoption(
@@ -70,5 +70,5 @@ def add_bootloader_args(parser: pytest.Parser) -> None:
         "--image-path",
         action="store",
         default=None,
-        help="Path to the firmware image file to flash.",
+        help="(REQUIRED) Path to the firmware image file to flash.",
     )
