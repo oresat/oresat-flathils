@@ -23,7 +23,13 @@ def base() -> None:
 def test(harness: str, run_hil: bool, pytest_args: str) -> None:  # noqa: FBT001
     """Run pytest with FlatHILS environment setup for a given harness."""
     try:
-        sys.exit(run_pytest(harness=harness, run_hil=run_hil, pytest_args=pytest_args.split()))
+        sys.exit(
+            run_pytest(
+                harness=harness,
+                run_hil=run_hil,
+                pytest_args=pytest_args.split(),
+            )
+        )
     except (LookupError, ValueError) as exception:
         sys.stderr.write(f"flathils test: {exception}\n")
 

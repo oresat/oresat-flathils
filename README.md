@@ -2,6 +2,14 @@
 
 The Hardware-in-the-Loop testing software infrastructure for OreSat.
 
+## Index
+
+- [Overview](#overview)
+- [Up and Running](#up-and-running)
+  - [CLI](#cli)
+  - [Running Test Harnesses](#running-test-harnesses)
+- [Tests](#tests)
+
 ## Overview
 
 OreSat FlatHILS is a software-based testing orchestrator platform for the Portland State Aerospace Society (PSAS) CubeSat called OreSat -- Oregon's First Satellite.
@@ -38,7 +46,7 @@ flathils --help
 
 ### Running Test Harnesses
 
-A "test harness" is a collection of configuration and tests for the OreSat satellite subject under test (SUT). An example harness is provided to demonstrate the structure of a test harness and can be run witht he following command.
+A "test harness" is a collection of configuration and tests for the OreSat satellite subject under test (SUT). An example harness is provided to demonstrate the structure of a test harness and can be run with the following command.
 
 ```sh
 flathils test example-harness
@@ -51,19 +59,7 @@ If you find yourself needing to command pytest directly, you can pass options an
 flathils test example-harness --pytest-args -v
 ```
 
-## CAN Harness
-
-Verifies that OreSat cards using the NXP MCXN947 SoC are correctly reachable over SocketCAN using CANopen.
-
-> **NOTE:** Make sure you have CAN enabled on your project!
-
-1. First, make sure you have a CAN connection with your device as `can0` if you do not have this, see [CAN Adapter Setup](util/can_udev.md) for setup
-
-2. Run a CAN harness test to ensure everything works:
-
-```sh
-flathils test can-harness --run-hil --pytest-args -v
-```
+to test a specific harness see [Harnesses](docs/harnesses.md)
 
 ## Tests
 
