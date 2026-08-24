@@ -43,11 +43,6 @@ OreSat FlatHILS is a software-based testing orchestrator platform for the Portla
 ```sh
 flathils --help
 ```
-To see all available harnesses, and their arguments you may use the following command
-
-```sh
-flathils harnesses
-```
 
 ### Running Test Harnesses
 
@@ -64,7 +59,7 @@ If you find yourself needing to command pytest directly, you can pass options an
 flathils test example-harness --pytest-args -v
 ```
 
-To see how to test a specific harness see [harnesses](docs/harnessses.md)
+to test a specific harness see [Harnesses](docs/harnesses.md)
 
 ## Tests
 

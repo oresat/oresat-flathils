@@ -29,5 +29,3 @@ Verifies that OreSat cards running the NXP MCXN947 SoC can flash a Zephyr image 
 ```sh
 flathils test bootloader-harness --run-hil --pytest-args "--can-device can0 --image-path ~/path/to/zephyr.signed.bin"
 ```
-
-There are additional arguments you can put such as throttle delay, and zephyr checking algorithms, see `list-args`.
