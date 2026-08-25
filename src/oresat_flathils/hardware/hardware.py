@@ -14,7 +14,6 @@ import pytest
 if TYPE_CHECKING:
     import can
 
-H1F56_PROGRAM_SWID = 0x1F56
 
 log = logging.getLogger("hardware.core")
 
@@ -179,11 +178,18 @@ class RP2040Device(Device):
 class CANopenNode:
     """Builds a CANopen Network on top of CANInterface() bus."""
 
-    def __init__(self, bus: can.BusABC, node_id: int = 0x7C) -> None:
+    H1F56_PROGRAM_SWID = 0x1F56
+    H1F50_PROGRAM_DATA = 0x1F50
+    H1F51_PROGRAM_CTRL = 0x1F51
+    H1F57_FLASH_STATUS = 0x1F57
+    DEFAULT_NODE_ID = 0x7C
+
+    def __init__(self, bus: can.BusABC, node_id: int = DEFAULT_NODE_ID) -> None:
         """Initialize CANopenNode with an existing python-can bus and CANopen node ID."""
         self.bus = bus
+        self.node_id = node_id
         self.network = canopen.Network(self.bus)
-        self.node = self.network.add_node(node_id, self.build_object_dictionary())
+        self.node = self.network.add_node(self.node_id, self.build_object_dictionary())
 
     def setup(self) -> None:
         self.network.connect()
@@ -196,16 +202,47 @@ class CANopenNode:
         """CANopen Object Dictionary for node."""
         object_dictionary = canopen.objectdictionary.ObjectDictionary()  # type: ignore[no-untyped-call]
 
-        # 0x1F56: Program software identification (array of per-program SW IDs)
-        program_swid_array = canopen.objectdictionary.Array(
-            "Program software ID", H1F56_PROGRAM_SWID
-        )
+        CANopenNode._add_program_entry(
+            object_dictionary,
+            name="Program software ID",
+            index=CANopenNode.H1F56_PROGRAM_SWID,
+            data_type=canopen.objectdictionary.UNSIGNED32,
+        )  # 0x1F56: Program software identification.
 
-        # Subindex 1: software ID for program 1
-        program_swid_var = canopen.objectdictionary.Variable("", H1F56_PROGRAM_SWID, subindex=1)
-        program_swid_var.data_type = canopen.objectdictionary.UNSIGNED32
-        program_swid_array.add_member(program_swid_var)
+        CANopenNode._add_program_entry(
+            object_dictionary,
+            name="Program data",
+            index=CANopenNode.H1F50_PROGRAM_DATA,
+            data_type=canopen.objectdictionary.DOMAIN,
+        )  # 0x1F50: Program data, controls block stream of data.
 
-        object_dictionary.add_object(program_swid_array)
+        CANopenNode._add_program_entry(
+            object_dictionary,
+            name="Program control array",
+            index=CANopenNode.H1F51_PROGRAM_CTRL,
+            data_type=canopen.objectdictionary.UNSIGNED8,
+        )  # 0xF151: Program control, controls FW update process.
+
+        CANopenNode._add_program_entry(
+            object_dictionary,
+            name="Flash status",
+            index=CANopenNode.H1F57_FLASH_STATUS,
+            data_type=canopen.objectdictionary.UNSIGNED32,
+        )  # 0xF157: Flash status, tells if update is progressing or errored.
 
         return object_dictionary
+
+    @staticmethod
+    def _add_program_entry(
+        object_dictionary: canopen.ObjectDictionary,
+        *,
+        name: str,
+        index: int,
+        data_type: int,
+    ) -> None:
+        """Add a single-member array entry to the object dictionary."""
+        array = canopen.objectdictionary.Array(name, index)
+        variable = canopen.objectdictionary.Variable("", index, subindex=1)
+        variable.data_type = data_type
+        array.add_member(variable)
+        object_dictionary.add_object(array)
