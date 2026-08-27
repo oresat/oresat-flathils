@@ -76,4 +76,4 @@ def add_bootloader_args(parser: pytest.Parser) -> None:
         action="store",
         default=None,
         help="Path to the firmware image file to flash.",
-)
+    )

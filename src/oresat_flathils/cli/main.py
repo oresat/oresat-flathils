@@ -25,7 +25,7 @@ def _check_required_options(harness: str, pytest_args: list[str]) -> None:
         return
 
     parser = pytest.Parser()
-    for add_fn in HARNESSES.values():   # mirrors pytest_addoption: full merged parser
+    for add_fn in HARNESSES.values():  # mirrors pytest_addoption: full merged parser
         add_fn(parser)
     namespace = parser.parse(pytest_args)
 
