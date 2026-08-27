@@ -91,7 +91,6 @@ def test_zephyr_flash_device(
     request_crc = bool(flash_cli_args["request_crc"])
     path = str(flash_cli_args["image_path"])
     is_throttling: bool = False
-
     bin_path = get_bin_path(path)
 
     size = bin_path.stat().st_size
