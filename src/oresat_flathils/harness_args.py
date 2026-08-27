@@ -9,14 +9,19 @@ if TYPE_CHECKING:
 
 HARNESSES: dict[str, Callable[[pytest.Parser], None]] = {}
 
+REQUIRED_OPTIONS: dict[str, list[str]] = {}
+
 
 def harness(
     name: str,
+    requires: list[str] | None = None,
 ) -> Callable[[Callable[[pytest.Parser], None]], Callable[[pytest.Parser], None]]:
     """Register a function as a harness's argument adder."""
 
     def decorator(fn: Callable[[pytest.Parser], None]) -> Callable[[pytest.Parser], None]:
         HARNESSES[name] = fn
+        if requires:
+            REQUIRED_OPTIONS[name] = requires
         return fn
 
     return decorator
@@ -33,9 +38,9 @@ def add_hil_args(parser: pytest.Parser) -> None:
     )
 
 
-@harness("can-harness / bootloader-harness")
+@harness("can-harness", requires=["can_device"])
 def add_can_args(parser: pytest.Parser) -> None:
-    """CAN/bootloader harness args."""
+    """CAN harness args."""
     parser.addoption(
         "--can-device",
         action="store",
@@ -44,7 +49,7 @@ def add_can_args(parser: pytest.Parser) -> None:
     )
 
 
-@harness("bootloader-harness")
+@harness("bootloader-harness", requires=["can_device", "image_path"])
 def add_bootloader_args(parser: pytest.Parser) -> None:
     """Bootloader harness args."""
     parser.addoption(
@@ -70,5 +75,5 @@ def add_bootloader_args(parser: pytest.Parser) -> None:
         "--image-path",
         action="store",
         default=None,
-        help="(REQUIRED) Path to the firmware image file to flash.",
-    )
+        help="Path to the firmware image file to flash.",
+)
