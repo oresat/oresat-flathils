@@ -2,14 +2,6 @@
 
 The Hardware-in-the-Loop testing software infrastructure for OreSat.
 
-## Index
-
-- [Overview](#overview)
-- [Up and Running](#up-and-running)
-  - [CLI](#cli)
-  - [Running Test Harnesses](#running-test-harnesses)
-- [Tests](#tests)
-
 ## Overview
 
 OreSat FlatHILS is a software-based testing orchestrator platform for the Portland State Aerospace Society (PSAS) CubeSat called OreSat -- Oregon's First Satellite.
@@ -44,22 +36,9 @@ OreSat FlatHILS is a software-based testing orchestrator platform for the Portla
 flathils --help
 ```
 
-### Running Test Harnesses
+### Running Harnesses
 
-A "test harness" is a collection of configuration and tests for the OreSat satellite subject under test (SUT). An example harness is provided to demonstrate the structure of a test harness and can be run with the following command.
-
-```sh
-flathils test example-harness
-```
-
-If you find yourself needing to command pytest directly, you can pass options and arguments through `flathils` to pytest with the `--pytest-args` flag.
-
-```sh
-# run the example harness and set pytest to verbose.
-flathils test example-harness --pytest-args -v
-```
-
-to test a specific harness see [Harnesses](docs/harnesses.md)
+To test a specific harness see [Harnesses](docs/harnesses.md)
 
 ## Tests
 

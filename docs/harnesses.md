@@ -2,9 +2,40 @@
 
 This document lists all the HIL harnesses and what they do.
 
-> **NOTE:** For CAN harnesses, make sure you have CAN enabled on your project!
+Index:
+- [Example harness](#example-harness)
+- [CAN Harnesses](#can-harnesses)
 
-## CAN Harness
+## Example harness
+
+This harness is purely for example purposes, and just shows the concept of HIL testing in FlatHILS
+
+A "test harness" is a collection of configuration and tests for the OreSat satellite subject under test (SUT). An example harness is provided to demonstrate the structure of a test harness and can be run with the following command.
+
+```sh
+flathils test example-harness
+```
+
+If you find yourself needing to command pytest directly, you can pass options and arguments through `flathils` to pytest with the `--pytest-args` flag.
+
+```sh
+# run the example harness and set pytest to verbose.
+flathils test example-harness --pytest-args -v
+```
+
+## CAN Harnesses
+
+These harnesses use a CAN connection to Communicate primarily with Oresat NXP MCXN947 cards.
+
+> **NOTE:** For all CAN harnesses, make sure you have CAN enabled on your project!
+
+Index:
+- [CAN-Harness](#CAN-harness)
+  - [Arguments for CAN-harness](#arguments-for-can-harness)
+- [Bootloader-harness](#bootloader-harness)
+  - [Arguments for bootloader-harness](#arguments-for-bootloader-harness)
+
+### CAN-harness
 
 Verifies that OreSat cards using the NXP MCXN947 SoC are correctly reachable over SocketCAN using CANopen.
 
@@ -15,8 +46,12 @@ Verifies that OreSat cards using the NXP MCXN947 SoC are correctly reachable ove
 ```sh
 flathils test can-harness --run-hil --pytest-args "--can-device can0 -v"
 ```
+#### Arguments for CAN-harness
 
-## Bootloader Harness
+- **`--can-device <str>`**  
+  **(Required)**: CAN device to be tested, default: `can0`
+
+### Bootloader-harness
 
 Verifies that OreSat cards running the NXP MCXN947 SoC can flash a Zephyr image over CAN using CANopen.
 
@@ -29,3 +64,19 @@ Verifies that OreSat cards running the NXP MCXN947 SoC can flash a Zephyr image 
 ```sh
 flathils test bootloader-harness --run-hil --pytest-args "--can-device can0 --image-path ~/path/to/zephyr.signed.bin"
 ```
+#### Arguments for bootloader-harness:
+
+- **`--can-device <str>`**  
+  **(Required)**: CAN device to be tested, default: `can0`
+
+- **`--image-path <str>`**  
+  **(Required)**: Path to Zephyr image to flash, default: `None`
+
+- **`--throttle-delay <float>`**  
+  Time to throttle CAN data packets, default: `0`
+  
+- **`--confirm-image`**  
+  Enables Zephyr's image confirmation, default: `False`
+
+- **`--request-crc`**
+  Enables Zephyr's CRC image checking, default: `False`
