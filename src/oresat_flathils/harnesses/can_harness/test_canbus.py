@@ -10,14 +10,6 @@ if TYPE_CHECKING:
 H1F56_PROGRAM_SWID = 0x1F56
 
 
-@pytest.fixture
-def can_device(pytestconfig: pytest.Config) -> str:
-    device = str(pytestconfig.getoption("--can-device"))
-    if not device:
-        pytest.fail("--can-device is required for this test session")
-    return device
-
-
 def test_canopen_heartbeat_received(bootloader_node: canopen.RemoteNode) -> None:
     """Test that the CANopen node sends a heartbeat message."""
     received_heartbeat = []

@@ -20,6 +20,7 @@ log = logging.getLogger("can_harness")
 
 __all__ = [
     "bootloader_node",
+    "can_device",
     "canbus",
     "flathils_environment",
     "flathils_sim",
@@ -29,7 +30,9 @@ __all__ = [
 
 @pytest.fixture
 def can_device(request: pytest.FixtureRequest) -> str | None:
-    return str(request.config.getoption("--can-device"))
+    """CAN Device to test with."""
+    device: str | None = request.config.getoption("--can-device")
+    return device
 
 
 @pytest.fixture(scope="session", autouse=True)

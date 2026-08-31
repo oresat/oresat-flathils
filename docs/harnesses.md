@@ -73,7 +73,7 @@ flathils --test bootloader-harness --run-hil --can-device can0 --image-path ~/pa
 #### Arguments for bootloader-harness:
 
 - **`--can-device <str>`**  
-  **(Required)**: CAN device to be tested, default: `can0`
+  **(Required)**: CAN device to be tested, default: `None`
 
 - **`--image-path <str>`**  
   **(Required)**: Path to Zephyr image to flash, default: `None`
