@@ -11,7 +11,6 @@ if TYPE_CHECKING:
 
 from oresat_flathils.hardware.fixtures import (
     bootloader_node,
-    can_device,
     canbus,
     rp2040_device,
 )
@@ -21,7 +20,6 @@ log = logging.getLogger("can_harness")
 
 __all__ = [
     "bootloader_node",
-    "can_device",
     "canbus",
     "flathils_environment",
     "flathils_sim",
@@ -31,13 +29,6 @@ __all__ = [
 
 def pytest_addoption(parser: pytest.Parser) -> None:
     """Add custom command line options to pytest."""
-    add_hil_args(parser)
-    add_can_args(parser)
-    add_bootloader_args(parser)
-
-
-def add_hil_args(parser: pytest.Parser) -> None:
-    """Add HIL-related command line options."""
     parser.addoption(
         "--run-hil",
         action="store_true",
@@ -45,9 +36,7 @@ def add_hil_args(parser: pytest.Parser) -> None:
         help="Run Hardware-in-the-Loop (HIL) tests alongside isolated software tests.",
     )
 
-
-def add_can_args(parser: pytest.Parser) -> None:
-    """CAN/bootloader harness args."""
+    """ CAN/bootloader harness args """
     parser.addoption(
         "--can-device",
         action="store",
@@ -55,9 +44,7 @@ def add_can_args(parser: pytest.Parser) -> None:
         help="CAN device to use for HIL testing",
     )
 
-
-def add_bootloader_args(parser: pytest.Parser) -> None:
-    """Bootloader harness args."""
+    """ Bootloader Harness Args """
     parser.addoption(
         "--confirm-image",
         action="store_true",
@@ -74,7 +61,6 @@ def add_bootloader_args(parser: pytest.Parser) -> None:
         "--throttle-delay",
         action="store",
         default=0,
-        type=float,
         help="Delay in milliseconds between transfer chunks, to throttle bandwidth.",
     )
     parser.addoption(
@@ -83,6 +69,11 @@ def add_bootloader_args(parser: pytest.Parser) -> None:
         default=None,
         help="Path to the firmware image file to flash.",
     )
+
+
+@pytest.fixture
+def can_device(request: pytest.FixtureRequest) -> str | None:
+    return str(request.config.getoption("--can-device"))
 
 
 @pytest.fixture(scope="session", autouse=True)
