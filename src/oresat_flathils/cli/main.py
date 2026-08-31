@@ -1,4 +1,5 @@
 """OreSat FlatHILS CLI Module."""
+
 import argparse
 import shlex
 import sys
@@ -17,29 +18,19 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="flathils", add_help=False)
     subparsers = parser.add_subparsers(dest="commands", metavar="commands: ")
     parser.add_argument(
-        "--help",
-        action="store_true",
-        default=False,
-        help="Show this help message and exit."
+        "--help", action="store_true", default=False, help="Show this help message and exit."
     )
     test_parser = subparsers.add_parser(
-        "test",
-        help="Run pytest with FlatHILS environment setup for a given harness."
+        "test", help="Run pytest with FlatHILS environment setup for a given harness."
     )
+    test_parser.add_argument("harness", help="Name of the harness to load from pyproject.toml.")
     test_parser.add_argument(
-        "harness",
-        help="Name of the harness to load from pyproject.toml."
-    )
-    test_parser.add_argument(
-        "--run-hil",
-        action="store_true",
-        default=False,
-        help="Run hardware-in-the-loop tests."
+        "--run-hil", action="store_true", default=False, help="Run hardware-in-the-loop tests."
     )
     test_parser.add_argument(
         "--pytest-args",
         default="",
-        help="Quoted string of arguments to pass through to PyTest, e.g. --pytest-args=\"-v -k foo\".",
+        help='Quoted string of arguments to pass through to PyTest, e.g. --pytest-args="-v"',
     )
     return parser
 
