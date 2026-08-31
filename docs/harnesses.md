@@ -16,6 +16,12 @@ A "test harness" is a collection of configuration and tests for the OreSat satel
 flathils test example-harness
 ```
 
+You can run Hardware-in-Loop tests with the `--run-hil` flag:
+
+```sh
+flathils test example-harness --run-hil
+```
+
 If you find yourself needing to command pytest directly, you can pass options and arguments through `flathils` to pytest with the `--pytest-args` flag.
 
 ```sh
