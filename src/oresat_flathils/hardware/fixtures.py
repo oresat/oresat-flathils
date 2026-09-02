@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from collections.abc import Generator
 
 
-from .hardware import CANopenNode, RP2040Device
+from .hardware import CANopenNode, RP2040Device, SolarSimulatorDevice
 
 log = logging.getLogger("hardware.fixtures")
 
@@ -20,6 +20,28 @@ log = logging.getLogger("hardware.fixtures")
 def can_device(pytestconfig: pytest.Config) -> str:
     """Pytest argument for CAN device."""
     return str(pytestconfig.getoption("--can-device"))
+
+
+@pytest.fixture
+def solar_sim_device(request: pytest.FixtureRequest):
+    if not request.config.getoption("run_hil", default=False):
+        pytest.skip("Hardware-in-the-Loop tests require the --run-hil flag.")
+
+    log.info("Acquiring Solar Simulator hardware...")
+
+    target = None
+    try:
+        target = request.getfixturevalue("target")
+    except pytest.FixtureLookupError:
+        pytest.fail("Labgrid 'target' fixture could not be found.")
+
+    device = SolarSimulatorDevice(target=request.getfixturevalue("target"))
+    device.setup()
+
+    yield device
+
+    log.info("Releasing Solar Simulator hardware...")
+    device.teardown()
 
 
 @pytest.fixture
