@@ -5,6 +5,8 @@ from pathlib import Path
 
 import pytest
 
+_harness_dir_key: pytest.StashKey[Path | None] = pytest.StashKey()
+
 
 def pytest_addoption(parser: pytest.Parser) -> None:
     """All CLI arguments."""
@@ -48,7 +50,14 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 
 def _get_harness_config(harness_name: str) -> dict[str, str]:
     """Fetch harness configuration from project config."""
-    with Path("pyproject.toml").open("rb") as f:
+    pyproject = Path("pyproject.toml")
+    if not pyproject.exists():
+        raise pytest.UsageError(
+            f"Could not find pyproject.toml in {Path.cwd()}.\n"
+            "Run this command from the root of the oresat-flathils project "
+            "(the directory containing pyproject.toml)."
+        )
+    with pyproject.open("rb") as f:
         config = tomllib.load(f)
     harnesses = config.get("tool", {}).get("oresat_flathils", {}).get("harnesses", {})
     if harness_name not in harnesses:
@@ -57,12 +66,17 @@ def _get_harness_config(harness_name: str) -> dict[str, str]:
 
 
 def _harness_dir(config: pytest.Config) -> Path | None:
-    """Get harness directory from pyproject."""
+    if _harness_dir_key in config.stash:
+        return config.stash[_harness_dir_key]
+
     harness = config.getoption("--test")
-    if not harness:
-        return None
-    harness_dir = _get_harness_config(harness).get("harness_dir")
-    return Path(harness_dir).resolve() if harness_dir else None
+    result = None
+    if harness:
+        harness_dir = _get_harness_config(harness).get("harness_dir")
+        result = Path(harness_dir).resolve() if harness_dir else None
+
+    config.stash[_harness_dir_key] = result
+    return result
 
 
 def pytest_configure(config: pytest.Config) -> None:

@@ -31,7 +31,6 @@ class FlashCliArgs(TypedDict):
     confirm_image: bool
     request_crc: bool
     image_path: str | None
-    can_device: str | None
 
 
 @pytest.fixture(scope="session")
@@ -42,7 +41,6 @@ def flash_cli_args(pytestconfig: pytest.Config) -> FlashCliArgs:
         "confirm_image": bool(pytestconfig.getoption("--confirm-image")),
         "request_crc": bool(pytestconfig.getoption("--request-crc")),
         "image_path": pytestconfig.getoption("--image-path"),
-        "can_device": pytestconfig.getoption("--can-device"),
     }
 
 
