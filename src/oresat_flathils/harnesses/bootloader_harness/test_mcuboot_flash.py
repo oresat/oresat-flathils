@@ -1,6 +1,6 @@
 import time
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypedDict
 
 import pytest
 
@@ -24,29 +24,32 @@ PROGRAM_CTRL_CLEAR = 0x03
 PROGRAM_CTRL_ZEPHYR_CONFIRM = 0x80
 
 
-@pytest.fixture(scope="session")
-def flash_cli_args(pytestconfig: pytest.Config) -> dict[str, bool | float | str | None]:
-    """Pytest arguments, uses CLI. image_path is required."""
-    image_path = pytestconfig.getoption("--image-path")
-    can_device = pytestconfig.getoption("--can-device")
-    if not image_path:
-        pytest.fail("--image-path is required for this test session")
-    if not can_device:
-        pytest.fail("--can-device is required for this test session")
+class FlashCliArgs(TypedDict):
+    """Typed shape of the CLI-derived flash arguments."""
 
+    throttle_delay: float
+    confirm_image: bool
+    request_crc: bool
+    image_path: str | None
+
+
+@pytest.fixture(scope="session")
+def flash_cli_args(pytestconfig: pytest.Config) -> FlashCliArgs:
+    """Pytest arguments, uses CLI. image_path is required."""
     return {
         "throttle_delay": float(pytestconfig.getoption("--throttle-delay")),
         "confirm_image": bool(pytestconfig.getoption("--confirm-image")),
         "request_crc": bool(pytestconfig.getoption("--request-crc")),
-        "can_device": can_device,
-        "image_path": image_path,
+        "image_path": pytestconfig.getoption("--image-path"),
     }
 
 
-def get_bin_path(path: str) -> Path:
+def get_bin_path(path: str | None) -> Path:
     """Get firmware binary path and resolve within CLI."""
-    zephyr_img_path = Path(path).expanduser().resolve()
+    if not path:
+        pytest.fail("No argument found for --image-path.")
 
+    zephyr_img_path = Path(path).expanduser().resolve()
     if not zephyr_img_path.is_file():
         pytest.fail(f"Firmware file was not found on: {zephyr_img_path}")
 
@@ -83,13 +86,13 @@ def throttle_bus_send(
 def test_zephyr_flash_device(
     monkeypatch: pytest.MonkeyPatch,
     bootloader_node: canopen.RemoteNode,
-    flash_cli_args: dict[str, bool | float | str],
+    flash_cli_args: FlashCliArgs,
 ) -> None:
     """Flash a zephyr image using CANopen."""
-    throttle_delay = float(flash_cli_args["throttle_delay"])
-    confirm_image = bool(flash_cli_args["confirm_image"])
-    request_crc = bool(flash_cli_args["request_crc"])
-    path = str(flash_cli_args["image_path"])
+    throttle_delay = flash_cli_args["throttle_delay"]
+    confirm_image = flash_cli_args["confirm_image"]
+    request_crc = flash_cli_args["request_crc"]
+    path = flash_cli_args["image_path"]
     is_throttling: bool = False
     bin_path = get_bin_path(path)
 

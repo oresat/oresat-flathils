@@ -13,20 +13,20 @@ This harness is purely for example purposes, and just shows the concept of HIL t
 A "test harness" is a collection of configuration and tests for the OreSat satellite subject under test (SUT). An example harness is provided to demonstrate the structure of a test harness and can be run with the following command.
 
 ```sh
-flathils test example-harness
+flathils --test example-harness
 ```
 
 You can run Hardware-in-Loop tests with the `--run-hil` flag:
 
 ```sh
-flathils test example-harness --run-hil
+flathils --test example-harness --run-hil
 ```
 
 If you find yourself needing to command pytest directly, you can pass options and arguments through `flathils` to pytest with the `--pytest-args` flag.
 
 ```sh
 # run the example harness and set pytest to verbose.
-flathils test example-harness --pytest-args -v
+flathils --test example-harness -v
 ```
 
 ## CAN Harnesses
@@ -50,7 +50,7 @@ Verifies that OreSat cards using the NXP MCXN947 SoC are correctly reachable ove
 2. Run a CAN harness test to ensure everything works:
 
 ```sh
-flathils test can-harness --run-hil --pytest-args "--can-device can0 -v"
+flathils --test can-harness --run-hil --can-device can0 -v
 ```
 #### Arguments for CAN-harness
 
@@ -68,12 +68,12 @@ Verifies that OreSat cards running the NXP MCXN947 SoC can flash a Zephyr image 
 3. Run a flashing test to ensure you can flash images.
 
 ```sh
-flathils test bootloader-harness --run-hil --pytest-args "--can-device can0 --image-path ~/path/to/zephyr.signed.bin"
+flathils --test bootloader-harness --run-hil --can-device can0 --image-path ~/path/to/zephyr.signed.bin
 ```
 #### Arguments for bootloader-harness:
 
 - **`--can-device <str>`**  
-  **(Required)**: CAN device to be tested, default: `can0`
+  **(Required)**: CAN device to be tested, default: `None`
 
 - **`--image-path <str>`**  
   **(Required)**: Path to Zephyr image to flash, default: `None`

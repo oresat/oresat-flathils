@@ -17,12 +17,6 @@ log = logging.getLogger("hardware.fixtures")
 
 
 @pytest.fixture
-def can_device(pytestconfig: pytest.Config) -> str:
-    """Pytest argument for CAN device."""
-    return str(pytestconfig.getoption("--can-device"))
-
-
-@pytest.fixture
 def rp2040_device(request: pytest.FixtureRequest) -> Generator[RP2040Device]:
     """RP2040 device wrapper for test cases."""
     run_hil = request.config.getoption("run_hil", default=False)
@@ -48,14 +42,14 @@ def rp2040_device(request: pytest.FixtureRequest) -> Generator[RP2040Device]:
 
 
 @pytest.fixture
-def canbus(request: pytest.FixtureRequest, can_device: str) -> Generator[can.BusABC]:
+def canbus(request: pytest.FixtureRequest, can_device: str | None) -> Generator[can.BusABC]:
     """Raw python-can Bus for test cases."""
     run_hil = request.config.getoption("run_hil", default=False)
     if not run_hil:
         pytest.skip("Hardware-in-the-Loop tests require the --run-hil flag.")
 
     if not can_device:
-        pytest.skip("Harnesses with CAN require a CAN connection")
+        pytest.fail("Harnesses with CAN require a CAN connection")
 
     with can.Bus(channel=can_device, interface="socketcan") as bus:
         yield bus

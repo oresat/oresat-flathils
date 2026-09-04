@@ -6,8 +6,6 @@ This module provides a basic example of testing hardware/simulation.
 import os
 from typing import TYPE_CHECKING
 
-import pytest
-
 if TYPE_CHECKING:
     from oresat_flathils.hardware.hardware import RP2040Device
     from oresat_flathils.simulator.simulator import BasiliskSimulator
@@ -29,7 +27,6 @@ def test_simulator_step(flathils_sim: BasiliskSimulator) -> None:
     assert True
 
 
-@pytest.mark.hil
 def test_rp2040_hardware(rp2040_device: RP2040Device) -> None:
     """Test connecting to the physical RP2040 hardware."""
     assert rp2040_device.is_ready

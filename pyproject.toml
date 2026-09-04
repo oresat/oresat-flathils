@@ -25,7 +25,10 @@ dev = [
 ]
 
 [project.scripts]
-flathils = "oresat_flathils.cli.main:base"
+flathils = "oresat_flathils.cli:main"
+
+[project.entry-points.pytest11]
+flathils = "oresat_flathils.plugin"
 
 [tool.oresat_flathils.harnesses]
 example-harness =    { harness_dir = "src/oresat_flathils/harnesses/example_harness" }
@@ -34,7 +37,7 @@ bootloader-harness = { harness_dir = "src/oresat_flathils/harnesses/bootloader_h
 
 [tool.pytest.ini_options]
 markers = [
-    "hil: mark a test as requiring Hardware-in-the-Loop."
+    "hil: mark a test as requiring Hardware-in-the-Loop.",
 ]
 
 [tool.setuptools]
