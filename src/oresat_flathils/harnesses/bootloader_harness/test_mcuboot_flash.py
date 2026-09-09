@@ -12,6 +12,8 @@ if TYPE_CHECKING:
     from can import Message
     from canopen.sdo.base import SdoVariable
 
+from oresat_flathils.plugin import FLATHILS_STASH_KEY
+
 DOWNLOAD_BUFFER_SIZE = 889
 STATUS_TIMEOUT_S = 30.0
 BOOTUP_TIMEOUT_S = 20.0
@@ -36,11 +38,12 @@ class FlashCliArgs(TypedDict):
 @pytest.fixture(scope="session")
 def flash_cli_args(pytestconfig: pytest.Config) -> FlashCliArgs:
     """Pytest arguments, uses CLI. image_path is required."""
+    flathils = pytestconfig.stash[FLATHILS_STASH_KEY]
     return {
-        "throttle_delay": float(pytestconfig.getoption("--throttle-delay")),
-        "confirm_image": bool(pytestconfig.getoption("--confirm-image")),
-        "request_crc": bool(pytestconfig.getoption("--request-crc")),
-        "image_path": pytestconfig.getoption("--image-path"),
+        "throttle_delay": float(flathils.get("throttle_delay", 0)),
+        "confirm_image": bool(flathils.get("confirm_image", False)),
+        "request_crc": bool(flathils.get("request_crc", False)),
+        "image_path": flathils.get("image_path"),
     }
 
 

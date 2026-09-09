@@ -13,7 +13,6 @@ dependencies = [
     "pytest >= 9.0.0",
     "labgrid >= 26.0",
     "bsk >= 2.10.2",
-    "click >= 8.4.0",
     "canopen >= 2.3.0",
     "python-can >= 4.3.0",
 ]
@@ -30,15 +29,10 @@ flathils = "oresat_flathils.cli:main"
 [project.entry-points.pytest11]
 flathils = "oresat_flathils.plugin"
 
-[tool.oresat_flathils.harnesses]
-example-harness =    { harness_dir = "src/oresat_flathils/harnesses/example_harness" }
-can-harness =        { harness_dir = "src/oresat_flathils/harnesses/can_harness" }
-bootloader-harness = { harness_dir = "src/oresat_flathils/harnesses/bootloader_harness" }
-
-[tool.pytest.ini_options]
-markers = [
-    "hil: mark a test as requiring Hardware-in-the-Loop.",
-]
+[project.entry-points."flathils.harnesses"]
+example-harness    = "oresat_flathils.harnesses.example_harness:get_spec"
+can-harness        = "oresat_flathils.harnesses.can_harness:get_spec"
+bootloader-harness = "oresat_flathils.harnesses.bootloader_harness:get_spec"
 
 [tool.setuptools]
 package-dir = { "" = "src" }
