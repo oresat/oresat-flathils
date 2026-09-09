@@ -1,4 +1,4 @@
-"""Global confiuguration for FlatHILS device testing."""
+"""Global configuration for FlatHILS device testing."""
 
 import logging
 import os
@@ -11,17 +11,16 @@ if TYPE_CHECKING:
 
 from oresat_flathils.hardware.fixtures import (
     bootloader_node,
-    can_device,
     canbus,
     rp2040_device,
 )
+from oresat_flathils.plugin import FLATHILS_STASH_KEY
 from oresat_flathils.simulator.fixtures import flathils_sim
 
 log = logging.getLogger("can_harness")
 
 __all__ = [
     "bootloader_node",
-    "can_device",
     "canbus",
     "flathils_environment",
     "flathils_sim",
@@ -29,60 +28,34 @@ __all__ = [
 ]
 
 
-def pytest_addoption(parser: pytest.Parser) -> None:
-    """Add custom command line options to pytest."""
-    add_hil_args(parser)
-    add_can_args(parser)
-    add_bootloader_args(parser)
+@pytest.fixture
+def run_hil(request: pytest.FixtureRequest) -> bool:
+    return request.config.stash[FLATHILS_STASH_KEY].get("run_hil", False)
 
 
-def add_hil_args(parser: pytest.Parser) -> None:
-    """Add HIL-related command line options."""
-    parser.addoption(
-        "--run-hil",
-        action="store_true",
-        default=False,
-        help="Run Hardware-in-the-Loop (HIL) tests alongside isolated software tests.",
-    )
+@pytest.fixture
+def can_device(request: pytest.FixtureRequest) -> str | None:
+    return request.config.stash[FLATHILS_STASH_KEY].get("can_device")
 
 
-def add_can_args(parser: pytest.Parser) -> None:
-    """CAN/bootloader harness args."""
-    parser.addoption(
-        "--can-device",
-        action="store",
-        default=None,
-        help="CAN device to use for HIL testing",
-    )
+@pytest.fixture
+def image_path(request: pytest.FixtureRequest) -> str | None:
+    return request.config.stash[FLATHILS_STASH_KEY].get("image_path")
 
 
-def add_bootloader_args(parser: pytest.Parser) -> None:
-    """Bootloader harness args."""
-    parser.addoption(
-        "--confirm-image",
-        action="store_true",
-        default=False,
-        help="Confirm the new image after a successful boot instead of leaving it pending.",
-    )
-    parser.addoption(
-        "--request-crc",
-        action="store_true",
-        default=False,
-        help="Request a CRC check of the image before finalizing the transfer.",
-    )
-    parser.addoption(
-        "--throttle-delay",
-        action="store",
-        default=0,
-        type=float,
-        help="Delay in milliseconds between transfer chunks, to throttle bandwidth.",
-    )
-    parser.addoption(
-        "--image-path",
-        action="store",
-        default=None,
-        help="Path to the firmware image file to flash.",
-    )
+@pytest.fixture
+def confirm_image(request: pytest.FixtureRequest) -> bool:
+    return request.config.stash[FLATHILS_STASH_KEY].get("confirm_image", False)
+
+
+@pytest.fixture
+def request_crc(request: pytest.FixtureRequest) -> bool:
+    return request.config.stash[FLATHILS_STASH_KEY].get("request_crc", False)
+
+
+@pytest.fixture
+def throttle_delay(request: pytest.FixtureRequest) -> int:
+    return request.config.stash[FLATHILS_STASH_KEY].get("throttle_delay", 0)
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -90,8 +63,6 @@ def flathils_environment() -> Generator[None]:
     """Set the pytest environment."""
     log.info("Setting up Example Environment ...")
     os.environ["FLATHILS_ENV_ACTIVE"] = "1"
-
     yield
-
     log.info("Tearing down Example Environment ...")
     os.environ.pop("FLATHILS_ENV_ACTIVE", None)

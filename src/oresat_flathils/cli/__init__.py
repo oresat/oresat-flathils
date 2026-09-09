@@ -1,5 +1,5 @@
 """OreSat FlatHILS Command-Line Interface."""
 
-from .main import base
+from .main import main
 
-__all__ = ["base"]
+__all__ = ["main"]

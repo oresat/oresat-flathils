@@ -14,7 +14,7 @@ log = logging.getLogger("simulator.fixtures")
 
 
 @pytest.fixture
-def flathils_sim(request: pytest.FixtureRequest) -> Generator[BasiliskSimulator]:
+def flathils_sim(*, request: pytest.FixtureRequest, run_hil: bool) -> Generator[BasiliskSimulator]:
     """Provide a BasiliskSimulator instance for test cases.
 
     This fixture ensures that the simulator is safely initialized and torn down.

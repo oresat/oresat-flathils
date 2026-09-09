@@ -1,6 +1,8 @@
-from oresat_flathils.cli import main
+"""Tests for oresat_flathils.cli."""
+
+from oresat_flathils.simulator import simulator
 
 
-class TestCliModuleStructure:
-    def test_cli_module_imports(self) -> None:
-        assert main is not None
+class TestSimulatorModuleStructure:
+    def test_simulator_module_imports(self) -> None:
+        assert simulator is not None
